@@ -3,11 +3,10 @@ package main
 import (
 	"net/http"
 
+	"github.com/datsfilipe/pkg/application/server"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
-
-	"github.com/datsfilipe/pkg/server"
 )
 
 func main() {
@@ -18,7 +17,6 @@ func main() {
 		fx.Provide(
 			server.Init,
 			server.ServeMux,
-			server.CreateEchoHandler,
 			zap.NewProduction,
 		),
 		fx.Invoke(func(*http.Server) {}),
