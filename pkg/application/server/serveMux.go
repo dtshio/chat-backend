@@ -6,9 +6,7 @@ import (
 	"github.com/datsfilipe/pkg/controllers"
 )
 
-func ServeMux() *http.ServeMux {
-	userController := controllers.NewUserController()
-
+func ServeMux(userController *controllers.UserController) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("/signup", http.HandlerFunc(userController.HandleSignUp))
 

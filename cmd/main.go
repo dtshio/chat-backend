@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/datsfilipe/pkg/application/server"
+	"github.com/datsfilipe/pkg/controllers"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ func main() {
 		fx.Provide(
 			server.Init,
 			server.ServeMux,
+			controllers.NewUserController,
 			zap.NewProduction,
 		),
 		fx.Invoke(func(*http.Server) {}),
