@@ -12,50 +12,54 @@ type UserRepository struct {
 	core.Repository
 }
 
-func (ur *UserRepository) Create(db *gorm.DB, data interface {}) (interface {}, error) {
+func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface {}, error) {
 	user, ok := data.(*models.User)
     if !ok {
         return nil, fmt.Errorf("Data is not a valid user")
     }
 
 	err := db.Table("users").Create(user).Error
+	if err != nil {
+		return nil, fmt.Errorf("Error creating user: %v", err)
+	}
+
 	return *user, err
 }
 
-func (ur *UserRepository) FindAll(db *gorm.DB, _ interface {}) (interface {}, error) {
-	var users []models.User
-	err := db.Table("users").Find(&users).Error
-	return users, err
-}
+func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interface {}, error) {
+	profile, ok := data.(*models.Profile)
+	if !ok {
+		return nil, fmt.Errorf("Data is not a valid profile")
+	}
 
-func (ur *UserRepository) FindByID(db *gorm.DB, data interface {}) (interface {}, error) {
-	id := data.(uint)
-	var user models.User
-	err := db.Table("users").First(&user, id).Error
-	return user, err
+	err := db.Table("user_profiles").Create(profile).Error
+	if err != nil {
+		return nil, fmt.Errorf("Error creating profile: %v", err)
+	}
+
+	return *profile, err
 }
 
 func (ur *UserRepository) FindByEmail(db *gorm.DB, data interface {}) (interface {}, error) {
 	email := data.(string)
 	var user models.User
 	err := db.Table("users").Where("email = ?", email).First(&user).Error
+	if err != nil {
+		return nil, nil
+	}
+
 	return user, err
 }
 
-func (ur *UserRepository) Delete(db *gorm.DB, data interface{}) (interface{}, error) {
-	id := data.(string)
-	err := db.Table("users").Delete(&models.User{}, id).Error
-	return nil, err
-}
+func (ur *UserRepository) FindByUsername(db *gorm.DB, data interface {}) (interface {}, error) {
+	username := data.(string)
+	var profile models.Profile
+	err := db.Table("user_profiles").Where("username = ?", username).First(&profile).Error
+	if err != nil {
+		return nil, nil
+	}
 
-func (ur *UserRepository) Update(db *gorm.DB, data interface{}) (interface{}, error) {
-	user, ok := data.(*models.User)
-    if !ok {
-        return nil, fmt.Errorf("Data is not a valid user")
-    }
-
-	err := db.Table("users").Save(user).Error
-	return *user, err
+	return profile, err
 }
 
 func NewUserRepository() *UserRepository {
@@ -64,12 +68,10 @@ func NewUserRepository() *UserRepository {
 		Repository: *core.NewRepository(
 			&models.User{},
 			[]core.RepositoryMethod{
-				userRepo.Create,
-				userRepo.FindAll,
-				userRepo.FindByID,
+				userRepo.CreateUser,
+				userRepo.CreateProfile,
 				userRepo.FindByEmail,
-				userRepo.Delete,
-				userRepo.Update,
+				userRepo.FindByUsername,
 			},
 		),
 	}
