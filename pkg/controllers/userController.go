@@ -21,22 +21,19 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	var raw json.RawMessage
 	err := json.NewDecoder(r.Body).Decode(&raw)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid request body"))
+		core.Response(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	err = json.Unmarshal(raw, &user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid user data"))
+		core.Response(w, http.StatusBadRequest, "Invalid user data")
 		return
 	}
 
 	err = json.Unmarshal(raw, &profile)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid profile data"))
+		core.Response(w, http.StatusBadRequest, "Invalid profile data")
 		return
 	}
 
@@ -44,8 +41,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	newUser, err := userService.CreateUser(user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
 
@@ -53,22 +49,19 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	_, err = userService.CreateProfile(profile)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
 
 	tokenPayload, err := json.Marshal(newUser.(models.User))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
 	}
 
 	token := auth.SignToken(string(tokenPayload))
 
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(token))
+	core.Response(w, http.StatusCreated, token)
 }
 
 func NewUserController() *UserController {
