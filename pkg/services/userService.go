@@ -11,16 +11,21 @@ import (
 	"github.com/datsfilipe/pkg/repositories"
 )
 
-func GenerateBigIntID() *big.Int {
-	max := new(big.Int)
-	max.Exp(big.NewInt(2), big.NewInt(130), nil).Sub(max, big.NewInt(1))
+func GenerateUniqueBigIntID(existingIDs map[string]bool) *big.Int {
+	maxInt64 := new(big.Int)
+	maxInt64.Exp(big.NewInt(2), big.NewInt(63), nil).Sub(maxInt64, big.NewInt(1))
 
-	n, err := rand.Int(rand.Reader, max)
-	if err != nil {
-		panic(err)
+	for {
+		n, err := rand.Int(rand.Reader, maxInt64)
+		if err != nil {
+			continue
+		}
+
+		idStr := n.String()
+		if !existingIDs[idStr] {
+			return n
+		}
 	}
-
-	return n
 }
 
 type UserService struct {
@@ -45,7 +50,8 @@ func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("User already exists")
 	}
 
-	user.ID = GenerateBigIntID().Uint64()
+	existingIDs := make(map[string]bool)
+	user.ID = GenerateUniqueBigIntID(existingIDs).Uint64()
 
 	return userRepo.CreateUser(db, user)
 }
@@ -68,7 +74,8 @@ func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("Profile already exists")
 	}
 
-	profile.ID = GenerateBigIntID().Uint64()
+	existingIDs := make(map[string]bool)
+	profile.ID = GenerateUniqueBigIntID(existingIDs).Uint64()
 
 	return userRepository.CreateProfile(db, profile)
 }
