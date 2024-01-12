@@ -65,6 +65,19 @@ func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 	return userRepository.CreateProfile(db, profile)
 }
 
+func (us *UserService) FindByEmail(data interface{}) (interface{}, error) {
+	email := data.(string)
+
+	db, err := database.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	userRepository := repositories.NewUserRepository()
+
+	return userRepository.FindByEmail(db, email)
+}
+
 func NewUserService() *UserService {
 	userService := &UserService{}
 
