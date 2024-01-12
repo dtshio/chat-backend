@@ -3,11 +3,13 @@ package main
 import (
 	"net/http"
 
+	"github.com/datsfilipe/pkg/application/database"
 	"github.com/datsfilipe/pkg/application/server"
 	"github.com/datsfilipe/pkg/controllers"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -21,8 +23,19 @@ func main() {
 			controllers.NewUserController,
 			controllers.NewChannelController,
 			controllers.NewMessageController,
+			database.Open,
 			zap.NewProduction,
 		),
-		fx.Invoke(func(*http.Server) {}),
+		fx.Invoke(func(
+			_ *http.Server,
+			uc *controllers.UserController,
+			cc *controllers.ChannelController,
+			mc *controllers.MessageController,
+			db *gorm.DB,
+		) {
+			uc.SetDB(db)
+			cc.SetDB(db)
+			mc.SetDB(db)
+		}),
 	).Run()
 }

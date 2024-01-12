@@ -10,10 +10,12 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
+	"gorm.io/gorm"
 )
 
 type MessageController struct {
 	core.Controller
+	db *gorm.DB
 }
 
 func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +42,7 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 
 	messageService := services.NewMessageService()
 
-	newMessage, err := messageService.CreateMessage(message)
+	newMessage, err := messageService.CreateMessage(mc.db, message)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -54,12 +56,15 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 	core.Response(w, http.StatusCreated, res)
 }
 
-func NewMessageController() *MessageController {
-	messageController := &MessageController{}
+func NewMessageController(db *gorm.DB) *MessageController {
+	messageController := &MessageController{
+		db: db,
+	}
 
 	return &MessageController{
 		Controller: *core.NewController([]core.ControllerMethod{
 			messageController.HandleNewMessage,
 		}),
+		db: db,
 	}
 }

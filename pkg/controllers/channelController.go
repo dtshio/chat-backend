@@ -10,10 +10,12 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
+	"gorm.io/gorm"
 )
 
 type ChannelController struct {
 	core.Controller
+	db *gorm.DB
 }
 
 type HandleNewChannelPaylaod struct {
@@ -46,7 +48,7 @@ func (cc *ChannelController) HandleNewChannel(w http.ResponseWriter, r *http.Req
 	channelService := services.NewChannelService()
 
 	channel := &models.Channel{}
-	newChannel, err := channelService.CreateChannel(channel)
+	newChannel, err := channelService.CreateChannel(cc.db, channel)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -81,7 +83,7 @@ func (cc *ChannelController) HandleGetChannels(w http.ResponseWriter, r *http.Re
 	channelService := services.NewChannelService()
 
 	channels := &[]models.Channel{}
-	channelRecords, err := channelService.GetChannels(channels)
+	channelRecords, err := channelService.GetChannels(cc.db, channels)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -95,13 +97,16 @@ func (cc *ChannelController) HandleGetChannels(w http.ResponseWriter, r *http.Re
 	core.Response(w, http.StatusCreated, res)
 }
 
-func NewChannelController() *ChannelController {
-	channelController := &ChannelController{}
+func NewChannelController(db *gorm.DB) *ChannelController {
+	channelController := &ChannelController{
+		db: db,
+	}
 
 	return &ChannelController{
 		Controller: *core.NewController([]core.ControllerMethod{
 			channelController.HandleNewChannel,
 			channelController.HandleGetChannels,
 		}),
+		db: db,
 	}
 }

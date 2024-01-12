@@ -8,10 +8,12 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
+	"gorm.io/gorm"
 )
 
 type UserController struct {
 	core.Controller
+	db *gorm.DB
 }
 
 func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +41,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	userService := services.NewUserService()
 
-	newUser, err := userService.CreateUser(user)
+	newUser, err := userService.CreateUser(uc.db, user)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -47,7 +49,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	profile.UserID = newUser.(models.User).ID
 
-	_, err = userService.CreateProfile(profile)
+	_, err = userService.CreateProfile(uc.db, profile)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -82,7 +84,7 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 
 	userService := services.NewUserService()
 
-	userRecord, _ := userService.FindByEmail(user.Email)
+	userRecord, _ := userService.FindByEmail(uc.db, user.Email)
 	if userRecord == nil {
 		core.Response(w, http.StatusNotFound, "User not found")
 		return
@@ -103,13 +105,16 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	core.Response(w, http.StatusOK, token)
 }
 
-func NewUserController() *UserController {
-	userController := &UserController{}
+func NewUserController(db *gorm.DB) *UserController {
+	userController := &UserController{
+		db: db,
+	}
 
 	return &UserController{
 		Controller: *core.NewController([]core.ControllerMethod{
 			userController.HandleSignUp,
 			userController.HandleSignIn,
 		}),
+		db: db,
 	}
 }

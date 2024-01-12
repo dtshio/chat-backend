@@ -5,26 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/datsfilipe/pkg/application/database"
 	"github.com/datsfilipe/pkg/application/redis"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
+	"gorm.io/gorm"
 )
 
 type MessageService struct {
 	core.Service
 }
 
-func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
+func (ms *MessageService) CreateMessage(db *gorm.DB, data interface{}) (interface{}, error) {
 	message := data.(*models.Message)
 	if message == nil {
 		return nil, fmt.Errorf("Data is not a valid Message")
-	}
-
-	db, err := database.Open()
-	if err != nil {
-		return nil, err
 	}
 
 	messageRepo := repositories.NewMessageRepository()

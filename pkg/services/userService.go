@@ -3,25 +3,20 @@ package services
 import (
 	"fmt"
 
-	"github.com/datsfilipe/pkg/application/database"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
 	core.Service
 }
 
-func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
+func (us *UserService) CreateUser(db *gorm.DB, data interface{}) (interface{}, error) {
 	user := data.(*models.User)
 	if user == nil {
 		return nil, fmt.Errorf("Data is not a valid user")
-	}
-
-	db, err := database.Open()
-	if err != nil {
-		return nil, err
 	}
 
 	userRepo := repositories.NewUserRepository()
@@ -36,15 +31,10 @@ func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
 	return userRepo.CreateUser(db, user)
 }
 
-func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
+func (us *UserService) CreateProfile(db *gorm.DB, data interface{}) (interface{}, error) {
 	profile := data.(*models.Profile)
 	if profile == nil {
 		return nil, fmt.Errorf("Data is not a valid profile")
-	}
-
-	db, err := database.Open()
-	if err != nil {
-		return nil, err
 	}
 
 	userRepository := repositories.NewUserRepository()
@@ -59,13 +49,8 @@ func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 	return userRepository.CreateProfile(db, profile)
 }
 
-func (us *UserService) FindByEmail(data interface{}) (interface{}, error) {
+func (us *UserService) FindByEmail(db *gorm.DB, data interface{}) (interface{}, error) {
 	email := data.(string)
-
-	db, err := database.Open()
-	if err != nil {
-		return nil, err
-	}
 
 	userRepository := repositories.NewUserRepository()
 
@@ -79,6 +64,8 @@ func NewUserService() *UserService {
 		Service: *core.NewService(
 			[]core.ServiceMethod{
 				userService.CreateUser,
+				userService.FindByEmail,
+				userService.CreateProfile,
 			},
 		),
 	}

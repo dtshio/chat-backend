@@ -1,6 +1,8 @@
 package core
 
-type ServiceMethod func(interface{}) (interface{}, error)
+import "gorm.io/gorm"
+
+type ServiceMethod func(*gorm.DB, interface{}) (interface{}, error)
 
 type Service struct {
 	methods []ServiceMethod

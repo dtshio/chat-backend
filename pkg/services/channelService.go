@@ -3,25 +3,20 @@ package services
 import (
 	"fmt"
 
-	"github.com/datsfilipe/pkg/application/database"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
+	"gorm.io/gorm"
 )
 
 type ChannelService struct {
 	core.Service
 }
 
-func (cs *ChannelService) CreateChannel(data interface{}) (interface{}, error) {
+func (cs *ChannelService) CreateChannel(db *gorm.DB, data interface{}) (interface{}, error) {
 	channel := data.(*models.Channel)
 	if channel == nil {
 		return nil, fmt.Errorf("Data is not a valid Channel")
-	}
-
-	db, err := database.Open()
-	if err != nil {
-		return nil, err
 	}
 
 	channelRepo := repositories.NewChannelRepository()
@@ -32,15 +27,10 @@ func (cs *ChannelService) CreateChannel(data interface{}) (interface{}, error) {
 	return channelRepo.CreateChannel(db, channel)
 }
 
-func (cs *ChannelService) GetChannels(data interface{}) (interface{}, error) {
+func (cs *ChannelService) GetChannels(db *gorm.DB, data interface{}) (interface{}, error) {
 	channels := data.(*[]models.Channel)
 	if channels == nil {
 		return nil, fmt.Errorf("Data is not a valid Channel")
-	}
-
-	db, err := database.Open()
-	if err != nil {
-		return nil, err
 	}
 
 	channelRepo := repositories.NewChannelRepository()
