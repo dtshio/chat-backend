@@ -19,6 +19,8 @@ func main() {
 			server.Init,
 			server.ServeMux,
 			controllers.NewUserController,
+			controllers.NewChannelController,
+			controllers.NewMessageController,
 			zap.NewProduction,
 		),
 		fx.Invoke(func(*http.Server) {}),
