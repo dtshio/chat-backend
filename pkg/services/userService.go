@@ -2,21 +2,15 @@ package services
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/datsfilipe/pkg/application/database"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
-	"github.com/disgoorg/snowflake/v2"
 )
 
 type UserService struct {
 	core.Service
-}
-
-func GenerateID() uint64 {
-	return uint64(snowflake.New(time.Now()))
 }
 
 func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
@@ -37,7 +31,7 @@ func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("User already exists")
 	}
 
-	user.ID = GenerateID()
+	user.ID = core.GenerateID()
 
 	return userRepo.CreateUser(db, user)
 }
@@ -60,7 +54,7 @@ func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("Profile already exists")
 	}
 
-	profile.ID = GenerateID()
+	profile.ID = core.GenerateID()
 
 	return userRepository.CreateProfile(db, profile)
 }
