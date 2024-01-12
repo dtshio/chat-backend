@@ -5,3 +5,5 @@ services:
     hostname: api
     depends_on:
       - db
+    environment:
+      - CHAT_SECRET_KEY=${CHAT_SECRET_KEY}
