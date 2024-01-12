@@ -26,6 +26,20 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 	return *channel, err
 }
 
+func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interface {}, error) {
+	channels, ok := data.(*[]models.Channel)
+	if !ok {
+		return nil, fmt.Errorf("Data is not a valid Channel")
+	}
+
+	err := db.Table("channels").Find(channels).Error
+	if err != nil {
+		return nil, fmt.Errorf("Error getting Channels: %v", err)
+	}
+
+	return *channels, err
+}
+
 func NewChannelRepository() *ChannelRepository {
 	channelRepo := &ChannelRepository{}
 	return &ChannelRepository{
@@ -33,6 +47,7 @@ func NewChannelRepository() *ChannelRepository {
 			&models.Channel{},
 			[]core.RepositoryMethod{
 				channelRepo.CreateChannel,
+				channelRepo.GetChannels,
 			},
 		),
 	}

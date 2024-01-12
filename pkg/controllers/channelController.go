@@ -55,12 +55,53 @@ func (cc *ChannelController) HandleNewChannel(w http.ResponseWriter, r *http.Req
 	core.Response(w, http.StatusCreated, fmt.Sprint("{\"id\": \"", newChannel.(models.Channel).ID, "\"}"))
 }
 
+func (cc *ChannelController) HandleGetChannels(w http.ResponseWriter, r *http.Request) {
+	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
+
+	var raw json.RawMessage
+	err := json.NewDecoder(r.Body).Decode(&raw)
+	if err != nil {
+		core.Response(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	payload := HandleNewChannelPaylaod{}
+	err = json.Unmarshal(raw, &payload)
+
+	if err != nil {
+		core.Response(w, http.StatusBadRequest, "Invalid Channel data")
+		return
+	}
+
+	if auth.VerifyToken(fmt.Sprint(payload.ID) + "." + token) == false {
+		core.Response(w, http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	channelService := services.NewChannelService()
+
+	channels := &[]models.Channel{}
+	channelRecords, err := channelService.GetChannels(channels)
+	if err != nil {
+		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	res, err := json.Marshal(channelRecords)
+	if err != nil {
+		core.Response(w, http.StatusInternalServerError, "Internal server error")
+	}
+
+	core.Response(w, http.StatusCreated, res)
+}
+
 func NewChannelController() *ChannelController {
 	channelController := &ChannelController{}
 
 	return &ChannelController{
 		Controller: *core.NewController([]core.ControllerMethod{
 			channelController.HandleNewChannel,
+			channelController.HandleGetChannels,
 		}),
 	}
 }

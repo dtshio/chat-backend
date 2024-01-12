@@ -32,6 +32,22 @@ func (cs *ChannelService) CreateChannel(data interface{}) (interface{}, error) {
 	return channelRepo.CreateChannel(db, channel)
 }
 
+func (cs *ChannelService) GetChannels(data interface{}) (interface{}, error) {
+	channels := data.(*[]models.Channel)
+	if channels == nil {
+		return nil, fmt.Errorf("Data is not a valid Channel")
+	}
+
+	db, err := database.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	channelRepo := repositories.NewChannelRepository()
+
+	return channelRepo.GetChannels(db, channels)
+}
+
 func NewChannelService() *ChannelService {
 	channelService := &ChannelService{}
 
@@ -39,6 +55,7 @@ func NewChannelService() *ChannelService {
 		Service: *core.NewService(
 			[]core.ServiceMethod{
 				channelService.CreateChannel,
+				channelService.GetChannels,
 			},
 		),
 	}

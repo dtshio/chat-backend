@@ -16,6 +16,7 @@ func ServeMux(
 	mux.Handle("/signin", http.HandlerFunc(userController.HandleSignIn))
 	mux.Handle("/message", http.HandlerFunc(messageController.HandleNewMessage))
 	mux.Handle("/channel", http.HandlerFunc(channelController.HandleNewChannel))
+	mux.Handle("/channel/list", http.HandlerFunc(channelController.HandleGetChannels))
 
 	return mux
 }
