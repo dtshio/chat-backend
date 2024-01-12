@@ -1,35 +1,22 @@
 package services
 
 import (
-	"crypto/rand"
 	"fmt"
-	"math/big"
+	"time"
 
 	"github.com/datsfilipe/pkg/application/database"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
+	"github.com/disgoorg/snowflake/v2"
 )
-
-func GenerateUniqueBigIntID(existingIDs map[string]bool) *big.Int {
-	maxInt64 := new(big.Int)
-	maxInt64.Exp(big.NewInt(2), big.NewInt(63), nil).Sub(maxInt64, big.NewInt(1))
-
-	for {
-		n, err := rand.Int(rand.Reader, maxInt64)
-		if err != nil {
-			continue
-		}
-
-		idStr := n.String()
-		if !existingIDs[idStr] {
-			return n
-		}
-	}
-}
 
 type UserService struct {
 	core.Service
+}
+
+func GenerateID() uint64 {
+	return uint64(snowflake.New(time.Now()))
 }
 
 func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
@@ -50,8 +37,7 @@ func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("User already exists")
 	}
 
-	existingIDs := make(map[string]bool)
-	user.ID = GenerateUniqueBigIntID(existingIDs).Uint64()
+	user.ID = GenerateID()
 
 	return userRepo.CreateUser(db, user)
 }
@@ -74,8 +60,7 @@ func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("Profile already exists")
 	}
 
-	existingIDs := make(map[string]bool)
-	profile.ID = GenerateUniqueBigIntID(existingIDs).Uint64()
+	profile.ID = GenerateID()
 
 	return userRepository.CreateProfile(db, profile)
 }
