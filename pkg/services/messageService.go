@@ -1,9 +1,12 @@
 package services
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/datsfilipe/pkg/application/database"
+	"github.com/datsfilipe/pkg/application/redis"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
@@ -14,8 +17,8 @@ type MessageService struct {
 }
 
 func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
-	Message := data.(*models.Message)
-	if Message == nil {
+	message := data.(*models.Message)
+	if message == nil {
 		return nil, fmt.Errorf("Data is not a valid Message")
 	}
 
@@ -26,9 +29,23 @@ func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 
 	messageRepo := repositories.NewMessageRepository()
 
-	Message.ID = core.GenerateID()
+	message.ID = core.GenerateID()
 
-	return messageRepo.CreateMessage(db, Message)
+	newMessage, err := messageRepo.CreateMessage(db, message)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	redis := redis.Open()
+	redisMessage, err := json.Marshal(fmt.Sprint("{\"content\": \"", message.Content, "\"}"))
+	statusCmd := redis.Set(ctx, fmt.Sprint(message.ChannelID), redisMessage, 0)
+
+	if statusCmd.Err() != nil {
+		return nil, statusCmd.Err()
+	}
+
+	return newMessage, nil
 }
 
 func NewMessageService() *MessageService {
