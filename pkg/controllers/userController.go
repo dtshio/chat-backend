@@ -53,7 +53,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenPayload, err := json.Marshal(newUser.(models.User))
+	tokenPayload, err := json.Marshal(newUser.(models.User).ID)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -93,7 +93,7 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenPayload, err := json.Marshal(userRecord.(models.User))
+	tokenPayload, err := json.Marshal(userRecord.(models.User).ID)
 	if err != nil {
 		core.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
