@@ -4,20 +4,26 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"os"
 	"strings"
 )
 
-func SignToken(payload string) string {
-	key := []byte("3735928559")
+var secretKey = []byte(os.Getenv("CHAT_SECRET_KEY"))
 
-	h := hmac.New(sha256.New, key)
+func SignToken(payload string) string {
+	h := hmac.New(sha256.New, secretKey)
 	h.Write([]byte(payload))
 
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
 
 func VerifyToken(token string) interface{} {
-	payload, signature := strings.Split(token, ".")[0], strings.Split(token, ".")[1]
+	parts := strings.Split(token, ".")
+	if len(parts) != 2 {
+		return false
+	}
+
+	payload, signature := parts[0], parts[1]
 
 	if SignToken(payload) == signature {
 		return payload
