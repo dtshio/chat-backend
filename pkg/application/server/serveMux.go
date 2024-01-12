@@ -13,11 +13,11 @@ func ServeMux(
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.Handle("/signup", Middleware(http.HandlerFunc(userController.HandleSignUp)))
-	mux.Handle("/signin", Middleware(http.HandlerFunc(userController.HandleSignIn)))
-	mux.Handle("/message", Middleware(http.HandlerFunc(messageController.HandleNewMessage)))
-	mux.Handle("/channel", Middleware(http.HandlerFunc(channelController.HandleNewChannel)))
-	mux.Handle("/channel/list", Middleware(http.HandlerFunc(channelController.HandleGetChannels)))
+	mux.Handle("/signup", CorsMiddleware(http.HandlerFunc(userController.HandleSignUp)))
+	mux.Handle("/signin", CorsMiddleware(http.HandlerFunc(userController.HandleSignIn)))
+	mux.Handle("/message", CorsMiddleware(http.HandlerFunc(messageController.HandleNewMessage)))
+	mux.Handle("/channel", CorsMiddleware(http.HandlerFunc(channelController.HandleNewChannel)))
+	mux.Handle("/channel/list", CorsMiddleware(http.HandlerFunc(channelController.HandleGetChannels)))
 
 	return mux
 }
