@@ -12,7 +12,7 @@ type MessageRepository struct {
 	core.Repository
 }
 
-func (ur *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (interface {}, error) {
+func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (interface {}, error) {
 	message, ok := data.(*models.Message)
     if !ok {
         return nil, fmt.Errorf("Data is not a valid Message")

@@ -12,7 +12,7 @@ type ChannelRepository struct {
 	core.Repository
 }
 
-func (ur *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (interface {}, error) {
+func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (interface {}, error) {
 	channel, ok := data.(*models.Channel)
     if !ok {
         return nil, fmt.Errorf("Data is not a valid Channel")

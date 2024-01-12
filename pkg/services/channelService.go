@@ -13,7 +13,7 @@ type ChannelService struct {
 	core.Service
 }
 
-func (us *ChannelService) CreateChannel(data interface{}) (interface{}, error) {
+func (cs *ChannelService) CreateChannel(data interface{}) (interface{}, error) {
 	channel := data.(*models.Channel)
 	if channel == nil {
 		return nil, fmt.Errorf("Data is not a valid Channel")

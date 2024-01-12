@@ -13,7 +13,7 @@ type MessageService struct {
 	core.Service
 }
 
-func (us *MessageService) CreateMessage(data interface{}) (interface{}, error) {
+func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 	Message := data.(*models.Message)
 	if Message == nil {
 		return nil, fmt.Errorf("Data is not a valid Message")

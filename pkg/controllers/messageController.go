@@ -16,7 +16,7 @@ type MessageController struct {
 	core.Controller
 }
 
-func (uc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
+func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 	message := &models.Message{}
 	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
 

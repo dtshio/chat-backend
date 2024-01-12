@@ -20,7 +20,7 @@ type HandleNewChannelPaylaod struct {
 	ID string `json:"id"`
 }
 
-func (uc *ChannelController) HandleNewChannel(w http.ResponseWriter, r *http.Request) {
+func (cc *ChannelController) HandleNewChannel(w http.ResponseWriter, r *http.Request) {
 	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
 
 	var raw json.RawMessage
