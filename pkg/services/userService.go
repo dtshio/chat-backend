@@ -57,6 +57,12 @@ func (us *UserService) FindByEmail(db *gorm.DB, data interface{}) (interface{}, 
 	return userRepository.FindByEmail(db, email)
 }
 
+func (us *UserService) GetProfiles(db *gorm.DB, data interface{}) (interface{}, error) {
+	userRepository := repositories.NewUserRepository()
+
+	return userRepository.GetProfiles(db, data)
+}
+
 func NewUserService() *UserService {
 	userService := &UserService{}
 
@@ -66,6 +72,7 @@ func NewUserService() *UserService {
 				userService.CreateUser,
 				userService.FindByEmail,
 				userService.CreateProfile,
+				userService.GetProfiles,
 			},
 		),
 	}

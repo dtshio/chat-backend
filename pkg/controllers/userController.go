@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/datsfilipe/pkg/application/auth"
@@ -55,15 +56,11 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenPayload, err := json.Marshal(newUser.(models.User).ID)
-	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
-		return
-	}
-
-	token := auth.SignToken(string(tokenPayload))
-
-	core.Response(w, http.StatusCreated, token)
+	stringfyProfile, _ := json.Marshal(profile)
+	stringfyUser, _ := json.Marshal(newUser)
+	token := auth.SignToken(fmt.Sprint(newUser.(models.User).ID))
+	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profile": %s}`, token, stringfyUser, stringfyProfile)
+	core.Response(w, http.StatusCreated, res)
 }
 
 func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
@@ -95,14 +92,20 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenPayload, err := json.Marshal(userRecord.(models.User).ID)
-	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+	profile := &models.Profile{}
+	profile.UserID = userRecord.(models.User).ID
+	profileRecords, err := userService.GetProfiles(uc.db, profile.UserID)
+
+	if profileRecords == nil {
+		core.Response(w, http.StatusInternalServerError, "Could not find any profiles")
 		return
 	}
 
-	token := auth.SignToken(string(tokenPayload))
-	core.Response(w, http.StatusOK, token)
+	stringfyProfiles, _ := json.Marshal(profileRecords.([]models.Profile))
+	stringfyUser, _ := json.Marshal(userRecord)
+	token := auth.SignToken(fmt.Sprint(userRecord.(models.User).ID))
+	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profiles": %s}`, token, stringfyUser, stringfyProfiles)
+	core.Response(w, http.StatusOK, res)
 }
 
 func NewUserController(db *gorm.DB) *UserController {

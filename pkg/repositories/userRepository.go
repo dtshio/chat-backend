@@ -62,6 +62,16 @@ func (ur *UserRepository) FindByUsername(db *gorm.DB, data interface {}) (interf
 	return profile, err
 }
 
+func (ur *UserRepository) GetProfiles(db *gorm.DB, data interface {}) (interface {}, error) {
+	var profiles []models.Profile
+	err := db.Table("user_profiles").Where("user_id = ?", data).Find(&profiles).Error
+	if err != nil {
+		return nil, nil
+	}
+
+	return profiles, err
+}
+
 func NewUserRepository() *UserRepository {
 	userRepo := &UserRepository{}
 	return &UserRepository{
@@ -72,6 +82,7 @@ func NewUserRepository() *UserRepository {
 				userRepo.CreateProfile,
 				userRepo.FindByEmail,
 				userRepo.FindByUsername,
+				userRepo.GetProfiles,
 			},
 		),
 	}
