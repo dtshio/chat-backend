@@ -6,5 +6,5 @@ COPY cmd ./cmd
 COPY pkg ./pkg
 RUN go mod download
 RUN GOOS=linux go build -o /api ./cmd
-EXPOSE 3333
+EXPOSE 8080
 CMD ["/api"]
