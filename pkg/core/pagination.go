@@ -8,6 +8,7 @@ type Pagination struct {
 	DB *gorm.DB
 	PageSize int
 	PageNumber int
+	Key string
 }
 
 type GetMessagesPayload struct {

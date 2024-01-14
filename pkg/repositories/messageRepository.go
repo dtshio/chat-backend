@@ -33,7 +33,7 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface {}) (interf
 	}
 
 	var messages []models.Message
-	err := db.Table("messages").Limit(pagination.PageSize).Offset(pagination.PageNumber).Find(&messages).Error
+	err := db.Table("messages").Limit(pagination.PageSize).Offset(pagination.PageNumber).Where("channel_id = ?", pagination.Key).Find(&messages).Error
 	if err != nil {
 		return nil, fmt.Errorf("Error getting Messages: %v", err)
 	}

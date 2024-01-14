@@ -55,6 +55,7 @@ func (ms *MessageService) GetMessages(db *gorm.DB, data interface{}) (interface{
 
 	messageRepo := repositories.NewMessageRepository()
 	pagination := core.NewPagination(db, 20, paylaod.Page - 1)
+	pagination.Key = paylaod.ChannelID
 
 	messages, err := messageRepo.GetMessages(db, pagination)
 
