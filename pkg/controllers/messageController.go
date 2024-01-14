@@ -18,8 +18,16 @@ type MessageController struct {
 	db *gorm.DB
 }
 
+type MessageWithStringIDs struct {
+	ID string `json:"id" gorm:"primaryKey"`
+	ChannelID string `json:"channel_id" gorm:"not null REFERENCES channels(id)"`
+	AuthorID string `json:"author_id" gorm:"not null REFERENCES users(id)"`
+	Content string `json:"content" gorm:"not null"`
+}
+
 func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 	message := &models.Message{}
+	payload := &MessageWithStringIDs{}
 	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
 
 	var raw json.RawMessage
@@ -29,11 +37,27 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = json.Unmarshal(raw, &message)
+	err = json.Unmarshal(raw, &payload)
 	if err != nil {
 		core.Response(w, http.StatusBadRequest, "Invalid Message data")
 		return
 	}
+
+	// TODO: Refactor this
+	// convert string IDs to uint64
+	message.AuthorID, err = core.StringToUint64(payload.AuthorID)
+	if err != nil {
+		core.Response(w, http.StatusBadRequest, "Invalid author ID")
+		return
+	}
+
+	message.ChannelID, err = core.StringToUint64(payload.ChannelID)
+	if err != nil {
+		core.Response(w, http.StatusBadRequest, "Invalid channel ID")
+		return
+	}
+
+	message.Content = payload.Content
 
 	if auth.VerifyToken(fmt.Sprint(message.AuthorID) + "." + token) == false {
 		core.Response(w, http.StatusUnauthorized, "Invalid token")
