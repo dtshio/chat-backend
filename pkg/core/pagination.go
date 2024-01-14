@@ -24,12 +24,3 @@ func NewPagination(db *gorm.DB, pageSize, pageNumber int) *Pagination {
 		PageNumber: pageNumber,
 	}
 }
-
-func (p *Pagination) ReversePaginate(model interface{}, orderColumn string) ([]interface{}, error) {
-	offset := p.PageNumber * p.PageSize
-
-	var results []interface{}
-	err := p.DB.Model(model).Order(orderColumn + " DESC").Offset(offset).Limit(p.PageSize).Find(&results).Error
-
-	return results, err
-}

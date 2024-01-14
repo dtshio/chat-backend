@@ -35,7 +35,7 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interfa
     var messages []models.Message
     offset := pagination.PageSize * (pagination.PageNumber)
     
-    db = db.Table("messages").Offset(offset).Limit(pagination.PageSize)
+    db = db.Table("messages").Order("created_at ASC").Offset(offset).Limit(pagination.PageSize)
     
     db = db.Where("channel_id = ?", pagination.Key)
     
