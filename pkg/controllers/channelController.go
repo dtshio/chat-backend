@@ -89,12 +89,12 @@ func (cc *ChannelController) HandleGetChannels(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	res, err := json.Marshal(channelRecords)
-	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+	var res string
+	for _, channel := range channelRecords.([]models.Channel) {
+		res += fmt.Sprint("{\"id\": \"", channel.ID, "\", \"type\": \"", channel.Type, "\"},")
 	}
 
-	core.Response(w, http.StatusCreated, res)
+	core.Response(w, http.StatusCreated, fmt.Sprint("[", res[:len(res) - 1], "]"))
 }
 
 func NewChannelController(db *gorm.DB) *ChannelController {
