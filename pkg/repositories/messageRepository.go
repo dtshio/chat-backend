@@ -26,19 +26,25 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 	return *message, err
 }
 
-func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface {}) (interface {}, error) {
-	pagination, ok := data.(*core.Pagination)
-	if !ok {
-		return nil, fmt.Errorf("Data is not a valid Pagination")
-	}
+func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {
+    pagination, ok := data.(*core.Pagination)
+    if !ok {
+        return nil, fmt.Errorf("Data is not a valid Pagination")
+    }
 
-	var messages []models.Message
-	err := db.Table("messages").Limit(pagination.PageSize).Offset(pagination.PageNumber).Where("channel_id = ?", pagination.Key).Find(&messages).Error
-	if err != nil {
-		return nil, fmt.Errorf("Error getting Messages: %v", err)
-	}
+    var messages []models.Message
+    offset := pagination.PageSize * (pagination.PageNumber)
+    
+    db = db.Table("messages").Offset(offset).Limit(pagination.PageSize)
+    
+    db = db.Where("channel_id = ?", pagination.Key)
+    
+    err := db.Find(&messages).Error
+    if err != nil {
+        return nil, fmt.Errorf("Error getting Messages: %v", err)
+    }
 
-	return messages, err
+    return messages, err
 }
 
 func NewMessageRepository() *MessageRepository {
