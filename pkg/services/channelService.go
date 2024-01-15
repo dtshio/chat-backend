@@ -21,7 +21,7 @@ func (cs *ChannelService) CreateChannel(db *gorm.DB, data interface{}) (interfac
 
 	channelRepo := repositories.NewChannelRepository()
 
-	channel.ID = core.GenerateID()
+	channel.ID = models.BigInt(core.GenerateID())
 	channel.Type = "DIRECT_MESSAGE"
 
 	return channelRepo.CreateChannel(db, channel)

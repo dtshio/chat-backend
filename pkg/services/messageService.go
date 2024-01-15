@@ -24,7 +24,7 @@ func (ms *MessageService) CreateMessage(db *gorm.DB, data interface{}) (interfac
 
 	messageRepo := repositories.NewMessageRepository()
 
-	message.ID = core.GenerateID()
+	message.ID = models.BigInt(core.GenerateID())
 
 	newMessage, err := messageRepo.CreateMessage(db, message)
 	if err != nil {

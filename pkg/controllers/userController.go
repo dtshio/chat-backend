@@ -93,7 +93,7 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profile := &models.Profile{}
-	profile.UserID = userRecord.(models.User).ID
+	profile.UserID = models.BigInt(userRecord.(models.User).ID)
 	profileRecords, err := userService.GetProfiles(uc.db, profile.UserID)
 
 	if profileRecords == nil {
