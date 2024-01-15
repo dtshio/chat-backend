@@ -26,7 +26,7 @@ func (us *UserService) CreateUser(db *gorm.DB, data interface{}) (interface{}, e
 		return nil, fmt.Errorf("User already exists")
 	}
 
-	user.ID = core.GenerateID()
+	user.ID = models.BigInt(core.GenerateID())
 
 	return userRepo.CreateUser(db, user)
 }
@@ -44,7 +44,7 @@ func (us *UserService) CreateProfile(db *gorm.DB, data interface{}) (interface{}
 		return nil, fmt.Errorf("Profile already exists")
 	}
 
-	profile.ID = core.GenerateID()
+	profile.ID = models.BigInt(core.GenerateID())
 
 	return userRepository.CreateProfile(db, profile)
 }

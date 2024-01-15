@@ -45,18 +45,21 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 
 	// TODO: Refactor this
 	// convert string IDs to uint64
-	message.AuthorID, err = core.StringToUint64(payload.AuthorID)
+	messageAuthorID, err := core.StringToUint64(payload.AuthorID)
 	if err != nil {
 		core.Response(w, http.StatusBadRequest, "Invalid author ID")
 		return
 	}
 
-	message.ChannelID, err = core.StringToUint64(payload.ChannelID)
+	message.AuthorID = models.BigInt(messageAuthorID)
+
+	messageChannelID, err := core.StringToUint64(payload.ChannelID)
 	if err != nil {
 		core.Response(w, http.StatusBadRequest, "Invalid channel ID")
 		return
 	}
 
+	message.ChannelID = models.BigInt(messageChannelID)
 	message.Content = payload.Content
 
 	if auth.VerifyToken(fmt.Sprint(message.AuthorID) + "." + token) == false {
