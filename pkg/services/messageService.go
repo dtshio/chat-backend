@@ -33,8 +33,8 @@ func (ms *MessageService) CreateMessage(db *gorm.DB, data interface{}) (interfac
 
 	ctx := context.Background()
 	redis := redis.Open()
-	redisMessage, err := json.Marshal(fmt.Sprint("{\"content\": \"", message.Content, "\"}"))
-	statusCmd := redis.Set(ctx, fmt.Sprint(message.ChannelID), redisMessage, 0)
+	redisMessage, err := json.Marshal(map[string]any{"content": message.Content})
+	statusCmd := redis.Publish(ctx, "channel:" + fmt.Sprint(message.ChannelID), redisMessage)
 
 	if statusCmd.Err() != nil {
 		return nil, statusCmd.Err()
