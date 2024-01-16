@@ -17,7 +17,7 @@ func SignToken(payload string) string {
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
 
-func VerifyToken(token string) interface{} {
+func VerifyToken(token string) bool {
 	parts := strings.Split(token, ".")
 	if len(parts) != 2 {
 		return false
@@ -26,7 +26,7 @@ func VerifyToken(token string) interface{} {
 	payload, signature := parts[0], parts[1]
 
 	if SignToken(payload) == signature {
-		return payload
+		return true
 	}
 
 	return false
