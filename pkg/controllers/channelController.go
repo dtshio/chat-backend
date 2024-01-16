@@ -16,7 +16,7 @@ type ChannelController struct {
 }
 
 func (cc *ChannelController) HandleNewChannel(w http.ResponseWriter, r *http.Request) {
-	if cc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if cc.IsAllowedMethod(r, []string{"PUT"}) == false {
 		cc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
