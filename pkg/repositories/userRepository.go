@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"fmt"
-
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"gorm.io/gorm"
@@ -15,12 +13,12 @@ type UserRepository struct {
 func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface {}, error) {
 	user, ok := data.(*models.User)
     if !ok {
-        return nil, fmt.Errorf("Data is not a valid user")
+        return nil, ur.GenError(ur.InvalidData, user)
     }
 
 	err := db.Table("users").Create(user).Error
 	if err != nil {
-		return nil, fmt.Errorf("Error creating user: %v", err)
+		return nil, ur.GenError(ur.CreatingError, user)
 	}
 
 	return *user, err
@@ -29,12 +27,12 @@ func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface 
 func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interface {}, error) {
 	profile, ok := data.(*models.Profile)
 	if !ok {
-		return nil, fmt.Errorf("Data is not a valid profile")
+		return nil, ur.GenError(ur.InvalidData, profile)
 	}
 
 	err := db.Table("user_profiles").Create(profile).Error
 	if err != nil {
-		return nil, fmt.Errorf("Error creating profile: %v", err)
+		return nil, ur.GenError(ur.CreatingError, profile)
 	}
 
 	return *profile, err

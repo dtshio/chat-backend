@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
@@ -16,14 +14,14 @@ type UserService struct {
 func (us *UserService) CreateUser(db *gorm.DB, data interface{}) (interface{}, error) {
 	user := data.(*models.User)
 	if user == nil {
-		return nil, fmt.Errorf("Data is not a valid user")
+		return nil, us.GenError(us.InvalidData, user)
 	}
 
 	userRepo := repositories.NewUserRepository()
 	userRecord, _ := userRepo.FindByEmail(db, user.Email)
 
 	if userRecord != nil {
-		return nil, fmt.Errorf("User already exists")
+		return nil, us.GenError(us.DuplicateError, user)
 	}
 
 	user.ID = models.BigInt(core.GenerateID())
@@ -34,14 +32,14 @@ func (us *UserService) CreateUser(db *gorm.DB, data interface{}) (interface{}, e
 func (us *UserService) CreateProfile(db *gorm.DB, data interface{}) (interface{}, error) {
 	profile := data.(*models.Profile)
 	if profile == nil {
-		return nil, fmt.Errorf("Data is not a valid profile")
+		return nil, us.GenError(us.InvalidData, profile)
 	}
 
 	userRepository := repositories.NewUserRepository()
 	profileRecord, _ := userRepository.FindByUsername(db, profile.Username)
 
 	if profileRecord != nil {
-		return nil, fmt.Errorf("Profile already exists")
+		return nil, us.GenError(us.DuplicateError, profile)
 	}
 
 	profile.ID = models.BigInt(core.GenerateID())

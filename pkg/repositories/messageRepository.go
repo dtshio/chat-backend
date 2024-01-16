@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"fmt"
-
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"gorm.io/gorm"
@@ -15,12 +13,12 @@ type MessageRepository struct {
 func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (interface {}, error) {
 	message, ok := data.(*models.Message)
     if !ok {
-        return nil, fmt.Errorf("Data is not a valid Message")
+        return nil, mr.GenError(mr.InvalidData, message)
     }
 
 	err := db.Table("messages").Create(message).Error
 	if err != nil {
-		return nil, fmt.Errorf("Error creating Message: %v", err)
+		return nil, mr.GenError(mr.CreatingError, message)
 	}
 
 	return *message, err
@@ -29,7 +27,7 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {
     pagination, ok := data.(*core.Pagination)
     if !ok {
-        return nil, fmt.Errorf("Data is not a valid Pagination")
+        return nil, mr.GenError(mr.InvalidData, pagination)
     }
 
     var messages []models.Message
@@ -40,7 +38,7 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interfa
     
     err := db.Find(&messages).Error
     if err != nil {
-        return nil, fmt.Errorf("Error getting Messages: %v", err)
+        return nil, mr.GenError(mr.GettingError, messages)
     }
 
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {

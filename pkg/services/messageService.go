@@ -19,7 +19,7 @@ type MessageService struct {
 func (ms *MessageService) CreateMessage(db *gorm.DB, data interface{}) (interface{}, error) {
 	message := data.(*models.Message)
 	if message == nil {
-		return nil, fmt.Errorf("Data is not a valid Message")
+		return nil, ms.GenError(ms.InvalidData, message)
 	}
 
 	messageRepo := repositories.NewMessageRepository()
@@ -43,20 +43,25 @@ func (ms *MessageService) CreateMessage(db *gorm.DB, data interface{}) (interfac
 	return newMessage, nil
 }
 
+type Map map[string]interface{}
+
 func (ms *MessageService) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {
-	paylaod := data.(*core.GetMessagesPayload)
-	if paylaod == nil {
-		return nil, fmt.Errorf("Data is not a valid GetMessagesPayload")
+	paylaod := data.(Map)
+	page := paylaod["page"].(int)
+	key := paylaod["channel_id"].(string)
+
+	if key == "" {
+		return nil, ms.GenError(ms.InvalidData, key)
 	}
 
-	if paylaod.Page < 1 {
-		return nil, fmt.Errorf("Page number must be greater than 0")
+	if page < 1 {
+		return nil, ms.GenError(ms.InvalidData, page)
 	}
+
+	pagination := core.NewPagination(db, 20, page - 1)
+	pagination.Key = key
 
 	messageRepo := repositories.NewMessageRepository()
-	pagination := core.NewPagination(db, 20, paylaod.Page - 1)
-	pagination.Key = paylaod.ChannelID
-
 	messages, err := messageRepo.GetMessages(db, pagination)
 
 	return messages, err

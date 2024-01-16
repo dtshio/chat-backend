@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"fmt"
-
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"gorm.io/gorm"
@@ -15,12 +13,12 @@ type ChannelRepository struct {
 func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (interface {}, error) {
 	channel, ok := data.(*models.Channel)
     if !ok {
-        return nil, fmt.Errorf("Data is not a valid Channel")
+        return nil, cr.GenError(cr.InvalidData, channel)
     }
 
 	err := db.Table("channels").Create(channel).Error
 	if err != nil {
-		return nil, fmt.Errorf("Error creating Channel: %v", err)
+		return nil, cr.GenError(cr.CreatingError, channel)
 	}
 
 	return *channel, err
@@ -29,12 +27,12 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interface {}, error) {
 	channels, ok := data.(*[]models.Channel)
 	if !ok {
-		return nil, fmt.Errorf("Data is not a valid Channel")
+		return nil, cr.GenError(cr.InvalidData, channels)
 	}
 
 	err := db.Table("channels").Find(channels).Error
 	if err != nil {
-		return nil, fmt.Errorf("Error getting Channels: %v", err)
+		return nil, cr.GenError(cr.GettingError, channels)
 	}
 
 	return *channels, err
