@@ -43,11 +43,9 @@ func (ms *MessageService) CreateMessage(db *gorm.DB, data interface{}) (interfac
 	return newMessage, nil
 }
 
-type Map map[string]interface{}
-
 func (ms *MessageService) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {
-	paylaod := data.(Map)
-	page := paylaod["page"].(int)
+	paylaod := data.(core.Map)
+	page := int(paylaod["page"].(float64))
 	key := paylaod["channel_id"].(string)
 
 	if key == "" {

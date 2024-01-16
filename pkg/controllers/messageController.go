@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
@@ -34,9 +35,12 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	authorID, _ := strconv.ParseUint(payload["author_id"].(string), 10, 64)
+	channelID, _ := strconv.ParseUint(payload["channel_id"].(string), 10, 64)
+
 	message.Content = payload["content"].(string)
-	message.AuthorID = models.BigInt(payload["author_id"].(float64))
-	message.ChannelID = models.BigInt(payload["channel_id"].(float64))
+	message.AuthorID = models.BigInt(authorID)
+	message.ChannelID = models.BigInt(channelID)
 
 	if message.Content == "" || message.AuthorID == 0 || message.ChannelID == 0 {
 		mc.Response(w, http.StatusBadRequest, nil)
