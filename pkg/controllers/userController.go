@@ -42,9 +42,11 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userService := services.NewUserService()
+	user.BeforeCreate()
 
+	userService := services.NewUserService()
 	newUser, err := userService.CreateUser(uc.db, user)
+
 	if err != nil {
 		uc.Response(w, http.StatusInternalServerError, nil)
 		return
@@ -99,7 +101,7 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userRecord.(models.User).Password != user.Password {
+	if user.VerifyPassword(user.Password, userRecord.(models.User).Password) == false {
 		uc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
