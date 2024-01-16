@@ -2,11 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 
-	"github.com/datsfilipe/pkg/application/auth"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
@@ -18,52 +15,31 @@ type MessageController struct {
 	db *gorm.DB
 }
 
-type MessageWithStringIDs struct {
-	ID string `json:"id" gorm:"primaryKey"`
-	ChannelID string `json:"channel_id" gorm:"not null REFERENCES channels(id)"`
-	AuthorID string `json:"author_id" gorm:"not null REFERENCES users(id)"`
-	Content string `json:"content" gorm:"not null"`
-}
-
 func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
+	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+		mc.Response(w, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
+	if mc.IsAuthorized(r) == false {
+		mc.Response(w, http.StatusUnauthorized, nil)
+		return
+	}
+
 	message := &models.Message{}
-	payload := &MessageWithStringIDs{}
-	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
+	payload := mc.GetPayload(r)
 
-	var raw json.RawMessage
-	err := json.NewDecoder(r.Body).Decode(&raw)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid request body")
+	if payload == nil {
+		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
 
-	err = json.Unmarshal(raw, &payload)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid Message data")
-		return
-	}
+	message.Content = payload["content"].(string)
+	message.AuthorID = models.BigInt(payload["author_id"].(float64))
+	message.ChannelID = models.BigInt(payload["channel_id"].(float64))
 
-	// TODO: Refactor this
-	// convert string IDs to uint64
-	messageAuthorID, err := core.StringToUint64(payload.AuthorID)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid author ID")
-		return
-	}
-
-	message.AuthorID = models.BigInt(messageAuthorID)
-
-	messageChannelID, err := core.StringToUint64(payload.ChannelID)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid channel ID")
-		return
-	}
-
-	message.ChannelID = models.BigInt(messageChannelID)
-	message.Content = payload.Content
-
-	if auth.VerifyToken(fmt.Sprint(message.AuthorID) + "." + token) == false {
-		core.Response(w, http.StatusUnauthorized, "Invalid token")
+	if message.Content == "" || message.AuthorID == 0 || message.ChannelID == 0 {
+		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -71,54 +47,55 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 
 	newMessage, err := messageService.CreateMessage(mc.db, message)
 	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		mc.Response(w, http.StatusInternalServerError, nil)
 		return
 	}
 
-	res, err := json.Marshal(newMessage)
+	jsonMessage, err := json.Marshal(newMessage)
 	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		mc.Response(w, http.StatusInternalServerError, nil)
 	}
 
-	core.Response(w, http.StatusCreated, res)
+	mc.Response(w, http.StatusCreated, jsonMessage)
 }
 
 func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
-	payload := &core.GetMessagesPayload{}
-	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
-
-	var raw json.RawMessage
-	err := json.NewDecoder(r.Body).Decode(&raw)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid request body")
+	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+		mc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	err = json.Unmarshal(raw, &payload)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid Message data")
+	if mc.IsAuthorized(r) == false {
+		mc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
 
-	if auth.VerifyToken(fmt.Sprint(payload.ID) + "." + token) == false {
-		core.Response(w, http.StatusUnauthorized, "Invalid token")
+	payload := mc.GetPayload(r)
+
+	if payload == nil {
+		mc.Response(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	if payload["channel_id"] == nil || payload["page"] == nil {
+		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
 
 	messageService := services.NewMessageService()
-
 	messages, err := messageService.GetMessages(mc.db, payload)
+
 	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		mc.Response(w, http.StatusInternalServerError, nil)
 		return
 	}
 
-	res, err := json.Marshal(messages)
+	jsonMessages, err := json.Marshal(messages)
 	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		mc.Response(w, http.StatusInternalServerError, nil)
 	}
 
-	core.Response(w, http.StatusOK, res)
+	mc.Response(w, http.StatusOK, jsonMessages)
 }
 
 func NewMessageController(db *gorm.DB) *MessageController {

@@ -17,26 +17,28 @@ type UserController struct {
 	db *gorm.DB
 }
 
+
 func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
+	if uc.IsAllowedMethod(r, []string{"POST"}) == false {
+		uc.Response(w, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
 	user := &models.User{}
 	profile := &models.Profile{}
+	payload := uc.GetPayload(r)
 
-	var raw json.RawMessage
-	err := json.NewDecoder(r.Body).Decode(&raw)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid request body")
+	if payload == nil {
+		uc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
 
-	err = json.Unmarshal(raw, &user)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid user data")
-		return
-	}
+	user.Email = payload["email"].(string)
+	user.Password = payload["password"].(string)
+	profile.Username = payload["username"].(string)
 
-	err = json.Unmarshal(raw, &profile)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid profile data")
+	if user.Email == "" || user.Password == "" || profile.Username == "" {
+		uc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -44,7 +46,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	newUser, err := userService.CreateUser(uc.db, user)
 	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		uc.Response(w, http.StatusInternalServerError, nil)
 		return
 	}
 
@@ -52,30 +54,40 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	_, err = userService.CreateProfile(uc.db, profile)
 	if err != nil {
-		core.Response(w, http.StatusInternalServerError, "Internal server error")
+		uc.Response(w, http.StatusInternalServerError, nil)
 		return
 	}
 
-	stringfyProfile, _ := json.Marshal(profile)
-	stringfyUser, _ := json.Marshal(newUser)
-	token := auth.SignToken(fmt.Sprint(newUser.(models.User).ID))
-	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profile": %s}`, token, stringfyUser, stringfyProfile)
-	core.Response(w, http.StatusCreated, res)
+	profileJson, _ := json.Marshal(profile)
+	userJson, _ := json.Marshal(newUser)
+
+	id := fmt.Sprint(newUser.(models.User).ID)
+	token := id + "." + auth.SignToken(id)
+
+	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profile": %s}`, token, userJson, profileJson)
+
+	uc.Response(w, http.StatusCreated, res)
 }
 
 func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
-	user := &models.User{}
-
-	var raw json.RawMessage
-	err := json.NewDecoder(r.Body).Decode(&raw)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid request body")
+	if uc.IsAllowedMethod(r, []string{"POST"}) == false {
+		uc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	err = json.Unmarshal(raw, &user)
-	if err != nil {
-		core.Response(w, http.StatusBadRequest, "Invalid user data")
+	user := &models.User{}
+	payload := uc.GetPayload(r)
+
+	if payload == nil {
+		uc.Response(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	user.Email = payload["email"].(string)
+	user.Password = payload["password"].(string)
+
+	if user.Email == "" || user.Password == "" {
+		uc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -83,29 +95,33 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 
 	userRecord, _ := userService.FindByEmail(uc.db, user.Email)
 	if userRecord == nil {
-		core.Response(w, http.StatusNotFound, "User not found")
+		uc.Response(w, http.StatusNotFound, nil)
 		return
 	}
 
 	if userRecord.(models.User).Password != user.Password {
-		core.Response(w, http.StatusUnauthorized, "Invalid credentials")
+		uc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
 
 	profile := &models.Profile{}
 	profile.UserID = models.BigInt(userRecord.(models.User).ID)
-	profileRecords, err := userService.GetProfiles(uc.db, profile.UserID)
+	profileRecords, _ := userService.GetProfiles(uc.db, profile.UserID)
 
 	if profileRecords == nil {
-		core.Response(w, http.StatusInternalServerError, "Could not find any profiles")
+		uc.Response(w, http.StatusInternalServerError, nil)
 		return
 	}
 
-	stringfyProfiles, _ := json.Marshal(profileRecords.([]models.Profile))
-	stringfyUser, _ := json.Marshal(userRecord)
-	token := auth.SignToken(fmt.Sprint(userRecord.(models.User).ID))
-	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profiles": %s}`, token, stringfyUser, stringfyProfiles)
-	core.Response(w, http.StatusOK, res)
+	profilesJson, _ := json.Marshal(profileRecords.([]models.Profile))
+	userJson, _ := json.Marshal(userRecord)
+
+	id := fmt.Sprint(userRecord.(models.User).ID)
+	token := id + "." + auth.SignToken(id)
+
+	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profiles": %s}`, token, userJson, profilesJson)
+
+	uc.Response(w, http.StatusOK, res)
 }
 
 func NewUserController(db *gorm.DB) *UserController {
