@@ -20,8 +20,6 @@ func (c *Controller) SetDB(db *gorm.DB) {
 	c.db = db
 }
 
-type Map map[string]interface{}
-
 func (c *Controller) GetPayload(r *http.Request) Map {
 	payload := *new(Map)
 
