@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-type BigInt uint64
+type BigInt int64
 
 func (integer BigInt) MarshalJSON() ([]byte, error) {
     return json.Marshal(strconv.Itoa(int(integer)))
