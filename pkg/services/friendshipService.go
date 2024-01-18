@@ -36,8 +36,6 @@ func (fs *FriendshipService) CreateFriendshipRequest(db *gorm.DB, data interface
 	friendshipRequest.InitiatorID = models.BigInt(initiatorIDInt)
 	friendshipRequest.FriendID = models.BigInt(friendIDInt)
 
-	friendshipRequest.BeforeCreateRecord()
-
 	friendshipRequestRecord, err := friendshipRepo.CreateFriendshipRequest(db, friendshipRequest)
 	if err != nil {
 		return nil, fs.GenError(fs.CreatingError, friendshipRequest)
@@ -82,7 +80,6 @@ func (fs *FriendshipService) CreateFriendship(db *gorm.DB, data interface{}) (in
 	friendship.DmChannelID = channel.(models.Channel).ID
 	friendship.InitiatorID = models.BigInt(initiatorIDInt)
 	friendship.FriendID = models.BigInt(friendIDInt)
-	friendship.ID = int64(core.GenerateID())
 
 	return friendshipRepo.CreateFriendship(db, friendship)
 }

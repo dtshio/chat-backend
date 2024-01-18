@@ -16,12 +16,17 @@ func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface 
         return nil, ur.GenError(ur.InvalidData, user)
     }
 
-	err := db.Table("users").Create(user).Error
+	err := user.BeforeCreateRecord()
 	if err != nil {
+		return nil, ur.GenError(ur.InvalidData, user)
+	}
+
+	err1 := db.Table("users").Create(user).Error
+	if err1 != nil {
 		return nil, ur.GenError(ur.CreatingError, user)
 	}
 
-	return *user, err
+	return *user, nil
 }
 
 func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interface {}, error) {
@@ -30,12 +35,17 @@ func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interfa
 		return nil, ur.GenError(ur.InvalidData, profile)
 	}
 
-	err := db.Table("user_profiles").Create(profile).Error
+	err := profile.BeforeCreateRecord()
 	if err != nil {
+		return nil, ur.GenError(ur.InvalidData, profile)
+	}
+
+	err1 := db.Table("user_profiles").Create(profile).Error
+	if err1 != nil {
 		return nil, ur.GenError(ur.CreatingError, profile)
 	}
 
-	return *profile, err
+	return *profile, nil
 }
 
 func (ur *UserRepository) FindByEmail(db *gorm.DB, data interface {}) (interface {}, error) {

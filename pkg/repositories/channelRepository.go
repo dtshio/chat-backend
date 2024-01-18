@@ -16,12 +16,17 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
         return nil, cr.GenError(cr.InvalidData, channel)
     }
 
-	err := db.Table("channels").Create(channel).Error
+	err := channel.BeforeCreateRecord()
 	if err != nil {
+		return nil, cr.GenError(cr.InvalidData, channel)
+	}
+
+	err1 := db.Table("channels").Create(channel).Error
+	if err1 != nil {
 		return nil, cr.GenError(cr.CreatingError, channel)
 	}
 
-	return *channel, err
+	return *channel, nil
 }
 
 func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interface {}, error) {

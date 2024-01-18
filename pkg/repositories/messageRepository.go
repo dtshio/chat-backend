@@ -16,12 +16,17 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
         return nil, mr.GenError(mr.InvalidData, message)
     }
 
-	err := db.Table("messages").Create(message).Error
+	err := message.BeforeCreateRecord()
 	if err != nil {
+		return nil, mr.GenError(mr.InvalidData, message)
+	}
+
+	err1 := db.Table("messages").Create(message).Error
+	if err1 != nil {
 		return nil, mr.GenError(mr.CreatingError, message)
 	}
 
-	return *message, err
+	return *message, nil
 }
 
 func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {

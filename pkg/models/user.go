@@ -1,9 +1,11 @@
 package models
 
 import (
-	"golang.org/x/crypto/argon2"
 	"encoding/base64"
 	"os"
+
+	"github.com/datsfilipe/pkg/core"
+	"golang.org/x/crypto/argon2"
 )
 
 var secretKey = []byte(os.Getenv("CHAT_SECRET_KEY"))
@@ -25,6 +27,13 @@ func (u *User) VerifyPassword(password string, hashedPassword string) bool {
 }
 
 func (u *User) BeforeCreateRecord() error {
+	u.ID = BigInt(core.GenerateID())
+
+	if u.ID < 0 {
+		u.ID = -u.ID
+	}
+
 	u.Password = u.HashPassword(u.Password)
+
 	return nil
 }

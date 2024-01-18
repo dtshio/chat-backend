@@ -24,8 +24,6 @@ func (us *UserService) CreateUser(db *gorm.DB, data interface{}) (interface{}, e
 		return nil, us.GenError(us.DuplicateError, user)
 	}
 
-	user.ID = models.BigInt(core.GenerateID())
-
 	return userRepo.CreateUser(db, user)
 }
 
@@ -41,8 +39,6 @@ func (us *UserService) CreateProfile(db *gorm.DB, data interface{}) (interface{}
 	if profileRecord != nil {
 		return nil, us.GenError(us.DuplicateError, profile)
 	}
-
-	profile.ID = models.BigInt(core.GenerateID())
 
 	return userRepository.CreateProfile(db, profile)
 }
