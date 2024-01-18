@@ -38,7 +38,7 @@ func (fs *FriendshipService) CreateFriendshipRequest(db *gorm.DB, data interface
 
 	friendshipRequestRecord, err := friendshipRepo.CreateFriendshipRequest(db, friendshipRequest)
 	if err != nil {
-		return nil, fs.GenError(fs.CreatingError, friendshipRequest)
+		return nil, fs.GenError(fs.CreateError, friendshipRequest)
 	}
 
 	return friendshipRequestRecord, nil
@@ -72,7 +72,7 @@ func (fs *FriendshipService) CreateFriendship(db *gorm.DB, data interface{}) (in
 
 	channel, err4 := channelService.CreateChannel(db, &models.Channel{})
 	if err4 != nil {
-		return nil, fs.GenError(fs.CreatingError, channel)
+		return nil, fs.GenError(fs.CreateError, channel)
 	}
 
 	friendship := &models.Friendship{}
@@ -119,14 +119,14 @@ func (fs *FriendshipService) DeleteFriendship(db *gorm.DB, data interface{}) (in
 
 	friendship, err := friendshipRepo.GetFriendship(db, userID)
 	if err != nil {
-		return nil, fs.GenError(fs.GettingError, friendship)
+		return nil, fs.GenError(fs.NotFoundError, friendship)
 	}
 
 	channelID := strconv.Itoa(int(friendship.(models.Friendship).DmChannelID))
 
 	_, err2 := friendshipRepo.DeleteFriendship(db, friendship)
 	if err2 != nil {
-		return nil, fs.GenError(fs.DeleteError, nil)
+		return nil, fs.GenError(fs.DeleteError, friendship)
 	}
 
 	channelService := NewChannelService()

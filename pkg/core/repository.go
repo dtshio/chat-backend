@@ -12,8 +12,8 @@ type Repository struct {
 
 	GenError func(string, interface{}) error
 	InvalidData string
-	CreatingError string
-	GettingError string
+	CreateError string
+	NotFoundError string
 	DuplicateError string
 	UpdateError string
 	DeleteError string
@@ -26,8 +26,8 @@ func NewRepository(model interface{}, methods []RepositoryMethod) *Repository {
 
 		GenError: GenError,
 		InvalidData: InvalidData,
-		CreatingError: CreatingError,
-		GettingError: GettingError,
+		CreateError: CreateError,
+		NotFoundError: NotFoundError,
 		DuplicateError: DuplicateError,
 		UpdateError: UpdateError,
 		DeleteError: DeleteError,

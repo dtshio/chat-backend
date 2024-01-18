@@ -23,7 +23,7 @@ func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface 
 
 	err1 := db.Table("users").Create(user).Error
 	if err1 != nil {
-		return nil, ur.GenError(ur.CreatingError, user)
+		return nil, ur.GenError(ur.CreateError, user)
 	}
 
 	return *user, nil
@@ -42,7 +42,7 @@ func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interfa
 
 	err1 := db.Table("user_profiles").Create(profile).Error
 	if err1 != nil {
-		return nil, ur.GenError(ur.CreatingError, profile)
+		return nil, ur.GenError(ur.CreateError, profile)
 	}
 
 	return *profile, nil

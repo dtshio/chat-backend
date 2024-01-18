@@ -23,7 +23,7 @@ func (fr *FriendshipRepository) CreateFriendshipRequest(db *gorm.DB, data interf
 
 	err1 := db.Table("friendship_requests").Create(friendshipRequest).Error
 	if err1 != nil {
-		return nil, fr.GenError(fr.CreatingError, friendshipRequest)
+		return nil, fr.GenError(fr.CreateError, friendshipRequest)
 	}
 
 	return *friendshipRequest, nil
@@ -43,7 +43,7 @@ func (fr *FriendshipRepository) CreateFriendship(db *gorm.DB, data interface {})
 
 	err1 := db.Table("friendships").Create(friendship).Error
 	if err1 != nil {
-		return nil, fr.GenError(fr.CreatingError, friendship)
+		return nil, fr.GenError(fr.CreateError, friendship)
 	}
 
 	return *friendship, nil
@@ -59,11 +59,11 @@ func (fr *FriendshipRepository) GetFriendships(db *gorm.DB, data interface {}) (
 
 	err := db.Table("friendships").Where("initiator_id = ? OR friend_id = ?", userID, userID).Find(friendships).Error
 	if err != nil {
-		return nil, fr.GenError(fr.GettingError, friendships)
+		return nil, fr.GenError(fr.NotFoundError, friendships)
 	}
 	
 	if len(*friendships) == 0 {
-		return nil, fr.GenError(fr.GettingError, friendships)
+		return nil, fr.GenError(fr.NotFoundError, friendships)
 	}
 
 	return *friendships, err
@@ -80,7 +80,7 @@ func (fr *FriendshipRepository) GetFriendship(db *gorm.DB, data interface {}) (i
 	
 	err := db.Table("friendships").Where("id = ?", id).First(friendship).Error
 	if err != nil {
-		return nil, fr.GenError(fr.GettingError, friendship)
+		return nil, fr.GenError(fr.NotFoundError, friendship)
 	}
 
 	return *friendship, err
@@ -112,11 +112,11 @@ func (fr *FriendshipRepository) GetFriendshipRequests(db *gorm.DB, data interfac
 
 	err := db.Table("friendship_requests").Where("(initiator_id = ? OR friend_id = ?) AND accepted = false", userID, userID).Find(friendshipRequests).Error
 	if err != nil {
-		return nil, fr.GenError(fr.GettingError, friendshipRequests)
+		return nil, fr.GenError(fr.NotFoundError, friendshipRequests)
 	}
 
 	if len(*friendshipRequests) == 0 {
-		return nil, fr.GenError(fr.GettingError, friendshipRequests)
+		return nil, fr.GenError(fr.NotFoundError, friendshipRequests)
 	}
 
 	return *friendshipRequests, err
@@ -133,7 +133,7 @@ func (fr *FriendshipRepository) GetFriendshipRequest(db *gorm.DB, data interface
 
 	err := db.Table("friendship_requests").Where("id = ?", id).First(friendshipRequest).Error
 	if err != nil {
-		return nil, fr.GenError(fr.GettingError, friendshipRequest)
+		return nil, fr.GenError(fr.NotFoundError, friendshipRequest)
 	}
 
 	return *friendshipRequest, err

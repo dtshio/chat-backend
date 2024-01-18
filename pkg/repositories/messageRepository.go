@@ -23,7 +23,7 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 
 	err1 := db.Table("messages").Create(message).Error
 	if err1 != nil {
-		return nil, mr.GenError(mr.CreatingError, message)
+		return nil, mr.GenError(mr.CreateError, message)
 	}
 
 	return *message, nil
@@ -43,7 +43,7 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interfa
     
     err := db.Find(&messages).Error
     if err != nil {
-        return nil, mr.GenError(mr.GettingError, messages)
+        return nil, mr.GenError(mr.NotFoundError, messages)
     }
 
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {

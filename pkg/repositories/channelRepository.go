@@ -23,7 +23,7 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 
 	err1 := db.Table("channels").Create(channel).Error
 	if err1 != nil {
-		return nil, cr.GenError(cr.CreatingError, channel)
+		return nil, cr.GenError(cr.CreateError, channel)
 	}
 
 	return *channel, nil
@@ -37,7 +37,7 @@ func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interf
 
 	err := db.Table("channels").Find(channels).Error
 	if err != nil {
-		return nil, cr.GenError(cr.GettingError, channels)
+		return nil, cr.GenError(cr.NotFoundError, channels)
 	}
 
 	return *channels, err

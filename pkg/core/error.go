@@ -6,11 +6,11 @@ import (
 
 const (
 	InvalidData = "Invalid data format"
-	CreatingError = "Error creating"
-	GettingError = "Error getting"
-	DuplicateError = "Aleady exists"
-	UpdateError = "Error updating"
-	DeleteError = "Error deleting"
+	CreateError = "Error creating entry"
+	NotFoundError = "Entry not found"
+	DuplicateError = "Entry already exists"
+	UpdateError = "Error updating entry"
+	DeleteError = "Error deleting entry"
 )
 
 func GenError(err string, model interface{}) error {
