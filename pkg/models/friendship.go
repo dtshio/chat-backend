@@ -7,9 +7,9 @@ import (
 )
 
 type FriendshipBase struct {
-	ID BigInt `json:"id" gorm:"primaryKey"`
+	ID          int64  `json:"id" gorm:"primaryKey"`
 	InitiatorID BigInt `json:"initiator_id" gorm:"not null"`
-	FriendID BigInt `json:"friend_id" gorm:"not null"`
+	FriendID    BigInt `json:"friend_id" gorm:"not null"`
 }
 
 type FriendshipRequest struct {
@@ -26,7 +26,7 @@ func (fr *FriendshipRequest) BeforeCreateRecord() error {
 	initiatorID := strconv.Itoa(int(fr.InitiatorID))
 	friendID := strconv.Itoa(int(fr.FriendID))
 
-	fr.ID = BigInt(core.HashID(initiatorID, friendID))
+	fr.ID = int64(core.HashID(initiatorID, friendID))
 
 	return nil
 }

@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/disgoorg/snowflake/v2"
-	"github.com/pierrec/xxHash/xxHash32"
 )
 
 func GenerateID() uint64 {
@@ -14,7 +14,7 @@ func GenerateID() uint64 {
 
 var secretKey = []byte(os.Getenv("CHAT_SECRET_KEY"))
 
-func HashID(firstID string, secondID string) uint32 {
+func HashID(firstID string, secondID string) uint64 {
 	var id string
 
 	if firstID > secondID {
@@ -23,15 +23,8 @@ func HashID(firstID string, secondID string) uint32 {
 		id = secondID + firstID
 	}
 
-	var seed uint32
-	for _, byte := range secretKey {
-		seed += uint32(byte)
-	}
-
-	hasher := xxHash32.New(seed)
+	hasher := xxhash.New()
 	hasher.Write([]byte(id))
-	hash := hasher.Sum32()
-	hasher.Reset()
 
-	return hash
+	return hasher.Sum64()
 }
