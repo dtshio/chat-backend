@@ -35,18 +35,22 @@ func (c *Controller) GetPayload(r *http.Request) Map {
 	return payload
 }
 
-func generateErrorMessages(statusCode int) string {
+func generateMessage(statusCode int) string {
 	switch statusCode {
 	case http.StatusMethodNotAllowed:
 		return "Method not allowed"
 	case http.StatusBadRequest:
-		return "Invalid data format"
+		return "Bad request"
 	case http.StatusUnauthorized:
 		return "Unauthorized"
 	case http.StatusNotFound:
 		return "Not found"
 	case http.StatusInternalServerError:
 		return "Internal server error"
+	case http.StatusCreated:
+		return "Created"
+	case http.StatusOK:
+		return "OK"
 	default:
 		return "Unknown error"
 	}
@@ -57,7 +61,7 @@ func (c *Controller) Response(w http.ResponseWriter, statusCode int, data interf
 	w.Header().Set("Content-Type", "application/json")
 
 	if data == nil {
-		http.Error(w, generateErrorMessages(statusCode), statusCode)
+		http.Error(w, generateMessage(statusCode), statusCode)
 		return
 	}
 
