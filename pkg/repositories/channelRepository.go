@@ -38,6 +38,17 @@ func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interf
 	return *channels, err
 }
 
+func (cr *ChannelRepository) DeleteChannel(db *gorm.DB, data interface {}) (interface {}, error) {
+	id := data.(string)
+
+	err := db.Table("channels").Where("id = ?", id).Delete(&models.Channel{}).Error
+	if err != nil {
+		return nil, cr.GenError(cr.DeleteError, nil)
+	}
+
+	return nil, err
+}
+
 func NewChannelRepository() *ChannelRepository {
 	channelRepo := &ChannelRepository{}
 	return &ChannelRepository{
@@ -46,6 +57,7 @@ func NewChannelRepository() *ChannelRepository {
 			[]core.RepositoryMethod{
 				channelRepo.CreateChannel,
 				channelRepo.GetChannels,
+				channelRepo.DeleteChannel,
 			},
 		),
 	}

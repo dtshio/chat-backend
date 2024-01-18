@@ -32,6 +32,18 @@ func (cs *ChannelService) GetChannels(db *gorm.DB, data interface{}) (interface{
 	return channelRepo.GetChannels(db, channels)
 }
 
+func (cs *ChannelService) DeleteChannel(db *gorm.DB, data interface{}) (interface{}, error) {
+	id, ok := data.(string)
+
+	if !ok || id == "" {
+		return nil, cs.GenError(cs.InvalidData, nil)
+	}
+
+	channelRepo := repositories.NewChannelRepository()
+
+	return channelRepo.DeleteChannel(db, id)
+}
+
 func NewChannelService() *ChannelService {
 	channelService := &ChannelService{}
 
