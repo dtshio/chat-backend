@@ -58,3 +58,5 @@ Offical documentation for chat-backend.
     "id":"1195205092224008192"
 }
 ```
+
+> Note: in the moment, error messages from error.go and controller.Response are not related, so the whole error handling is a mess and does not work properly most of the time.
