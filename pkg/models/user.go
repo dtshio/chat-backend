@@ -24,7 +24,7 @@ func (u *User) VerifyPassword(password string, hashedPassword string) bool {
 	return hashedInput == hashedPassword
 }
 
-func (u *User) BeforeCreate() error {
+func (u *User) BeforeCreateRecord() error {
 	u.Password = u.HashPassword(u.Password)
 	return nil
 }
