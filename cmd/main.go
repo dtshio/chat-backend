@@ -21,7 +21,7 @@ func main() {
 			server.Init,
 			server.ServeMux,
 			controllers.NewUserController,
-			controllers.NewChannelController,
+			controllers.NewFriendshipController,
 			controllers.NewMessageController,
 			database.Open,
 			zap.NewProduction,
@@ -29,12 +29,12 @@ func main() {
 		fx.Invoke(func(
 			_ *http.Server,
 			uc *controllers.UserController,
-			cc *controllers.ChannelController,
+			fc *controllers.FriendshipController,
 			mc *controllers.MessageController,
 			db *gorm.DB,
 		) {
 			uc.SetDB(db)
-			cc.SetDB(db)
+			fc.SetDB(db)
 			mc.SetDB(db)
 		}),
 	).Run()
