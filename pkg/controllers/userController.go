@@ -42,7 +42,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.BeforeCreate()
+	user.BeforeCreateRecord()
 
 	userService := services.NewUserService()
 	newUser, err := userService.CreateUser(uc.db, user)
