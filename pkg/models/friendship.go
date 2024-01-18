@@ -3,23 +3,30 @@ package models
 import (
 	"strconv"
 
-	"github.com/cespare/xxhash/v2"
+	"github.com/datsfilipe/pkg/core"
 )
 
-type Friendship struct {
+type FriendshipBase struct {
 	ID BigInt `json:"id" gorm:"primaryKey"`
 	InitiatorID BigInt `json:"initiator_id" gorm:"not null"`
 	FriendID BigInt `json:"friend_id" gorm:"not null"`
 }
 
-func (f *Friendship) BeforeCreate() {
-	var id string
+type FriendshipRequest struct {
+	FriendshipBase
+	Accepted bool `json:"accepted" gorm:"default:false"`
+}
 
-	if f.InitiatorID > f.FriendID {
-		id = strconv.Itoa(int(f.FriendID)) + strconv.Itoa(int(f.InitiatorID))
-	} else {
-		id = strconv.Itoa(int(f.InitiatorID)) + strconv.Itoa(int(f.FriendID))
-	}
+type Friendship struct {
+	FriendshipBase
+	DmChannelID BigInt
+}
 
-	f.ID = BigInt(xxhash.Sum64String(id))
+func (fr *FriendshipRequest) BeforeCreateRecord() error {
+	initiatorID := strconv.Itoa(int(fr.InitiatorID))
+	friendID := strconv.Itoa(int(fr.FriendID))
+
+	fr.ID = BigInt(core.HashID(initiatorID, friendID))
+
+	return nil
 }
