@@ -22,11 +22,6 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if mc.IsAuthorized(r) == false {
-		mc.Response(w, http.StatusUnauthorized, nil)
-		return
-	}
-
 	message := &models.Message{}
 	payload := mc.GetPayload(r)
 
@@ -66,11 +61,6 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
 	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
 		mc.Response(w, http.StatusMethodNotAllowed, nil)
-		return
-	}
-
-	if mc.IsAuthorized(r) == false {
-		mc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
 

@@ -22,11 +22,6 @@ func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if fc.IsAuthorized(r) == false {
-		fc.Response(w, http.StatusUnauthorized, nil)
-		return
-	}
-
 	payload := fc.GetPayload(r)
 
 	initiatorID := payload["initiator_id"].(string)
@@ -53,11 +48,6 @@ func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *ht
 func (fc *FriendshipController) HandleNewFriendshipRequest(w http.ResponseWriter, r *http.Request) {
 	if fc.IsAllowedMethod(r, []string{"POST"}) == false {
 		fc.Response(w, http.StatusMethodNotAllowed, nil)
-		return
-	}
-
-	if fc.IsAuthorized(r) == false {
-		fc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
 
@@ -97,11 +87,6 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 		return
 	}
 
-	if fc.IsAuthorized(r) == false {
-		fc.Response(w, http.StatusUnauthorized, nil)
-		return
-	}
-
 	userID := strings.Split(strings.Split(r.Header.Get("Authorization"), "Bearer ")[1], ".")[0]
 
 	if userID == "" {
@@ -131,11 +116,6 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 		return
 	}
 
-	if fc.IsAuthorized(r) == false {
-		fc.Response(w, http.StatusUnauthorized, nil)
-		return
-	}
-
 	userID := strings.Split(strings.Split(r.Header.Get("Authorization"), "Bearer ")[1], ".")[0]
 
 	friendshipService := services.NewFriendshipService()
@@ -157,11 +137,6 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r *http.Request) {
 	if fc.IsAllowedMethod(r, []string{"POST"}) == false {
 		fc.Response(w, http.StatusMethodNotAllowed, nil)
-		return
-	}
-
-	if fc.IsAuthorized(r) == false {
-		fc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
 
@@ -188,11 +163,6 @@ func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r 
 func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWriter, r *http.Request) {
 	if fc.IsAllowedMethod(r, []string{"POST"}) == false {
 		fc.Response(w, http.StatusMethodNotAllowed, nil)
-		return
-	}
-
-	if fc.IsAuthorized(r) == false {
-		fc.Response(w, http.StatusUnauthorized, nil)
 		return
 	}
 

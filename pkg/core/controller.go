@@ -3,9 +3,7 @@ package core
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
-	"github.com/datsfilipe/pkg/application/auth"
 	"gorm.io/gorm"
 )
 
@@ -35,18 +33,6 @@ func (c *Controller) GetPayload(r *http.Request) Map {
 	}
 
 	return payload
-}
-
-func (c *Controller) IsAuthorized(r *http.Request) bool {
-	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
-
-	if token == "" {
-		return false
-	}
-
-	isAuthorized := auth.VerifyToken(token)
-
-	return isAuthorized
 }
 
 func generateErrorMessages(statusCode int) string {
