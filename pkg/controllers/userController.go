@@ -9,12 +9,14 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type UserController struct {
 	core.Controller
 	db *gorm.DB
+	log *zap.Logger
 }
 
 
@@ -24,8 +26,6 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := &models.User{}
-	profile := &models.Profile{}
 	payload := uc.GetPayload(r)
 
 	if payload == nil {
@@ -33,8 +33,11 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := &models.User{}
 	user.Email = payload["email"].(string)
 	user.Password = payload["password"].(string)
+
+	profile := &models.Profile{}
 	profile.Username = payload["username"].(string)
 
 	if user.Email == "" || user.Password == "" || profile.Username == "" {
@@ -42,27 +45,28 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userService := services.NewUserService()
-	newUser, err := userService.CreateUser(uc.db, user)
+	service := services.NewUserService()
 
+	userRecord, err := service.CreateUser(uc.db, uc.log, user)
 	if err != nil {
-		uc.Response(w, http.StatusInternalServerError, nil)
+		uc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	profile.UserID = newUser.(models.User).ID
 
-	_, err = userService.CreateProfile(uc.db, profile)
+	profile.UserID = userRecord.(models.User).ID
+
+	profileRecord, err := service.CreateProfile(uc.db, uc.log, profile)
 	if err != nil {
-		uc.Response(w, http.StatusInternalServerError, nil)
+		uc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	profileJson, _ := json.Marshal(profile)
-	userJson, _ := json.Marshal(newUser)
+	userJson, _ := json.Marshal(userRecord)
+	profileJson, _ := json.Marshal(profileRecord)
 
-	id := fmt.Sprint(newUser.(models.User).ID)
-	token := id + "." + auth.SignToken(id)
+	userID := fmt.Sprint(userRecord.(models.User).ID)
+	token := userID + "." + auth.SignToken(userID)
 
 	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profile": %s}`, token, userJson, profileJson)
 
@@ -91,11 +95,11 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userService := services.NewUserService()
+	service := services.NewUserService()
 
-	userRecord, _ := userService.FindByEmail(uc.db, user.Email)
+	userRecord, err := service.FindByEmail(uc.db, uc.log, user.Email)
 	if userRecord == nil {
-		uc.Response(w, http.StatusNotFound, nil)
+		uc.Response(w, http.StatusNotFound, err)
 		return
 	}
 
@@ -106,34 +110,36 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 
 	profile := &models.Profile{}
 	profile.UserID = models.BigInt(userRecord.(models.User).ID)
-	profileRecords, _ := userService.GetProfiles(uc.db, profile.UserID)
 
-	if profileRecords == nil {
-		uc.Response(w, http.StatusInternalServerError, nil)
+	profileRecords, err := service.GetProfiles(uc.db, uc.log, profile.UserID)
+	if err != nil {
+		uc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	profilesJson, _ := json.Marshal(profileRecords.([]models.Profile))
 	userJson, _ := json.Marshal(userRecord)
 
-	id := fmt.Sprint(userRecord.(models.User).ID)
-	token := id + "." + auth.SignToken(id)
+	userID := fmt.Sprint(userRecord.(models.User).ID)
+	token := userID + "." + auth.SignToken(userID)
 
 	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profiles": %s}`, token, userJson, profilesJson)
 
 	uc.Response(w, http.StatusOK, res)
 }
 
-func NewUserController(db *gorm.DB) *UserController {
-	userController := &UserController{
+func NewUserController(db *gorm.DB, log *zap.Logger) *UserController {
+	controller := &UserController{
 		db: db,
+		log: log,
 	}
 
 	return &UserController{
 		Controller: *core.NewController([]core.ControllerMethod{
-			userController.HandleSignUp,
-			userController.HandleSignIn,
+			controller.HandleSignUp,
+			controller.HandleSignIn,
 		}),
 		db: db,
+		log: log,
 	}
 }

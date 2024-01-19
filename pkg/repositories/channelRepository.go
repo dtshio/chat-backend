@@ -12,6 +12,7 @@ type ChannelRepository struct {
 
 func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (interface {}, error) {
 	channel, ok := data.(*models.Channel)
+
     if !ok {
         return nil, cr.GenError(cr.InvalidData, channel)
     }
@@ -21,8 +22,8 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 		return nil, cr.GenError(cr.InvalidData, channel)
 	}
 
-	err1 := db.Table("channels").Create(channel).Error
-	if err1 != nil {
+	err = db.Table("channels").Create(channel).Error
+	if err != nil {
 		return nil, cr.GenError(cr.CreateError, channel)
 	}
 
@@ -31,6 +32,7 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 
 func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interface {}, error) {
 	channels, ok := data.(*[]models.Channel)
+
 	if !ok {
 		return nil, cr.GenError(cr.InvalidData, channels)
 	}
@@ -55,14 +57,15 @@ func (cr *ChannelRepository) DeleteChannel(db *gorm.DB, data interface {}) (inte
 }
 
 func NewChannelRepository() *ChannelRepository {
-	channelRepo := &ChannelRepository{}
+	repo := &ChannelRepository{}
+
 	return &ChannelRepository{
 		Repository: *core.NewRepository(
 			&models.Channel{},
 			[]core.RepositoryMethod{
-				channelRepo.CreateChannel,
-				channelRepo.GetChannels,
-				channelRepo.DeleteChannel,
+				repo.CreateChannel,
+				repo.GetChannels,
+				repo.DeleteChannel,
 			},
 		),
 	}

@@ -8,12 +8,14 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type FriendshipController struct {
 	core.Controller
 	db *gorm.DB
+	log *zap.Logger
 }
 
 func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *http.Request) {
@@ -32,15 +34,15 @@ func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *ht
 		return
 	}
 
-	friendshipService := services.NewFriendshipService()
-	newFriendship, err := friendshipService.CreateFriendship(fc.db, payload)
+	service := services.NewFriendshipService()
 
+	dbRecord, err := service.CreateFriendship(fc.db, fc.log, payload)
 	if err != nil {
-		fc.Response(w, http.StatusInternalServerError, nil)
+		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	res := fmt.Sprint("{\"id\": \"", newFriendship.(models.Friendship).ID, ", \"channel_id\": \"", newFriendship.(models.Friendship).DmChannelID, "\"}")
+	res := fmt.Sprint("{\"id\": \"", dbRecord.(models.Friendship).ID, ", \"channel_id\": \"", dbRecord.(models.Friendship).DmChannelID, "\"}")
 
 	fc.Response(w, http.StatusCreated, res)
 }
@@ -68,15 +70,15 @@ func (fc *FriendshipController) HandleNewFriendshipRequest(w http.ResponseWriter
 		return
 	}
 
-	friendshipService := services.NewFriendshipService()
-	newFriendshipRequest, err := friendshipService.CreateFriendshipRequest(fc.db, payload)
+	service := services.NewFriendshipService()
 
+	dbRecord, err := service.CreateFriendshipRequest(fc.db, fc.log, payload)
 	if err != nil {
-		fc.Response(w, http.StatusInternalServerError, nil)
+		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	res := fmt.Sprint("{\"id\": \"", newFriendshipRequest.(models.FriendshipRequest).ID, "\"}")
+	res := fmt.Sprint("{\"id\": \"", dbRecord.(models.FriendshipRequest).ID, "\"}")
 
 	fc.Response(w, http.StatusCreated, res)
 }
@@ -94,18 +96,24 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 		return
 	}
 
-	friendshipService := services.NewFriendshipService()
-	friendshipRecords, err := friendshipService.GetFriendships(fc.db, userID)
+	service := services.NewFriendshipService()
 
+	dbRecords, err := service.GetFriendships(fc.db, fc.log, userID)
 	if err != nil {
-		fc.Response(w, http.StatusInternalServerError, nil)
+		fc.Response(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if dbRecords == nil {
+		fc.Response(w, http.StatusOK, "[]")
 		return
 	}
 
 	var res string
-	for _, friendship := range friendshipRecords.([]models.Friendship) {
-		res += fmt.Sprint("{\"id\": \"", friendship.ID, "\", \"channel_id\": \"", friendship.DmChannelID, "\"},")
+	for _, friendship := range dbRecords.([]models.Friendship) {
+		res += fmt.Sprint("{\"id\": \"", friendship.ID, "\", \"initiator_id\": \"", friendship.InitiatorID, "\", \"friend_id\": \"", friendship.FriendID, "\"},")
 	}
+	fc.log.Info(res)
 
 	fc.Response(w, http.StatusOK, fmt.Sprint("[", res[:len(res) - 1], "]"))
 }
@@ -118,16 +126,16 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 
 	userID := strings.Split(strings.Split(r.Header.Get("Authorization"), "Bearer ")[1], ".")[0]
 
-	friendshipService := services.NewFriendshipService()
-	friendshipRequestRecords, err := friendshipService.GetFriendshipRequests(fc.db, userID)
+	service := services.NewFriendshipService()
 
+	dbRecords, err := service.GetFriendshipRequests(fc.db, fc.log, userID)
 	if err != nil {
-		fc.Response(w, http.StatusInternalServerError, nil)
+		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	var res string
-	for _, friendshipRequest := range friendshipRequestRecords.([]models.FriendshipRequest) {
+	for _, friendshipRequest := range dbRecords.([]models.FriendshipRequest) {
 		res += fmt.Sprint("{\"id\": \"", friendshipRequest.ID, "\", \"initiator_id\": \"", friendshipRequest.InitiatorID, "\", \"friend_id\": \"", friendshipRequest.FriendID, "\"},")
 	}
 
@@ -149,15 +157,15 @@ func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r 
 		return
 	}
 
-	friendshipService := services.NewFriendshipService()
-	_, err := friendshipService.DeleteFriendship(fc.db, friendshipID)
+	service := services.NewFriendshipService()
 
+	_, err := service.DeleteFriendship(fc.db, fc.log, friendshipID)
 	if err != nil {
-		fc.Response(w, http.StatusInternalServerError, nil)
+		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	fc.Response(w, http.StatusOK, nil)
+	fc.Response(w, http.StatusOK, "Deleted")
 }
 
 func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWriter, r *http.Request) {
@@ -167,38 +175,40 @@ func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWri
 	}
 
 	payload := fc.GetPayload(r)
-	friendshipRequestID := payload["id"].(string)
+	requestID := payload["id"].(string)
 
-	if friendshipRequestID == "" {
+	if requestID == "" {
 		fc.Response(w, http.StatusBadRequest, payload)
 		return
 	}
 
-	friendshipService := services.NewFriendshipService()
-	_, err := friendshipService.DeleteFriendshipRequest(fc.db, friendshipRequestID)
-	
+	service := services.NewFriendshipService()
+
+	_, err := service.DeleteFriendshipRequest(fc.db, fc.log, requestID)
 	if err != nil {
-		fc.Response(w, http.StatusInternalServerError, payload)
+		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	fc.Response(w, http.StatusOK, nil)
+	fc.Response(w, http.StatusOK, "Deleted")
 }
 
-func NewFriendshipController(db *gorm.DB) *FriendshipController {
-	friendshipController := &FriendshipController{
+func NewFriendshipController(db *gorm.DB, log *zap.Logger) *FriendshipController {
+	controller := &FriendshipController{
 		db: db,
+		log: log,
 	}
 
 	return &FriendshipController{
 		Controller: *core.NewController([]core.ControllerMethod{
-			friendshipController.HandleNewFriendship,
-			friendshipController.HandleGetFriendships,
-			friendshipController.HandleGetFriendshipRequests,
-			friendshipController.HandleNewFriendshipRequest,
-			friendshipController.HandleDeleteFriendship,
-			friendshipController.HandleDeleteFriendshipRequest,
+			controller.HandleNewFriendship,
+			controller.HandleGetFriendships,
+			controller.HandleGetFriendshipRequests,
+			controller.HandleNewFriendshipRequest,
+			controller.HandleDeleteFriendship,
+			controller.HandleDeleteFriendshipRequest,
 		}),
 		db: db,
+		log: log,
 	}
 }

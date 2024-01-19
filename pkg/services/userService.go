@@ -4,6 +4,7 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -11,62 +12,98 @@ type UserService struct {
 	core.Service
 }
 
-func (us *UserService) CreateUser(db *gorm.DB, data interface{}) (interface{}, error) {
+func (us *UserService) CreateUser(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
 	user := data.(*models.User)
+
 	if user == nil {
 		return nil, us.GenError(us.InvalidData, user)
 	}
 
-	userRepo := repositories.NewUserRepository()
-	userRecord, _ := userRepo.FindByEmail(db, user.Email)
+	repo := repositories.NewUserRepository()
 
-	if userRecord != nil {
+	duplicate, err := repo.FindByEmail(db, user.Email)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	if duplicate != nil {
 		return nil, us.GenError(us.DuplicateError, user)
 	}
 
-	return userRepo.CreateUser(db, user)
+	dbRecord, err := repo.CreateUser(db, user)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
 }
 
-func (us *UserService) CreateProfile(db *gorm.DB, data interface{}) (interface{}, error) {
+func (us *UserService) CreateProfile(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
 	profile := data.(*models.Profile)
+
 	if profile == nil {
 		return nil, us.GenError(us.InvalidData, profile)
 	}
 
-	userRepository := repositories.NewUserRepository()
-	profileRecord, _ := userRepository.FindByUsername(db, profile.Username)
+	repo := repositories.NewUserRepository()
 
-	if profileRecord != nil {
+	duplicate, err := repo.FindByUsername(db, profile.Username)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	if duplicate != nil {
 		return nil, us.GenError(us.DuplicateError, profile)
 	}
 
-	return userRepository.CreateProfile(db, profile)
+	dbRecord, err := repo.CreateProfile(db, profile)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
 }
 
-func (us *UserService) FindByEmail(db *gorm.DB, data interface{}) (interface{}, error) {
+func (us *UserService) FindByEmail(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
 	email := data.(string)
 
-	userRepository := repositories.NewUserRepository()
+	repo := repositories.NewUserRepository()
 
-	return userRepository.FindByEmail(db, email)
+	dbRecord, err := repo.FindByEmail(db, email)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
 }
 
-func (us *UserService) GetProfiles(db *gorm.DB, data interface{}) (interface{}, error) {
-	userRepository := repositories.NewUserRepository()
+func (us *UserService) GetProfiles(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+	repo := repositories.NewUserRepository()
 
-	return userRepository.GetProfiles(db, data)
+	dbRecord, err := repo.GetProfiles(db, data)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
 }
 
 func NewUserService() *UserService {
-	userService := &UserService{}
+	service := &UserService{}
 
 	return &UserService{
 		Service: *core.NewService(
 			[]core.ServiceMethod{
-				userService.CreateUser,
-				userService.FindByEmail,
-				userService.CreateProfile,
-				userService.GetProfiles,
+				service.CreateUser,
+				service.FindByEmail,
+				service.CreateProfile,
+				service.GetProfiles,
 			},
 		),
 	}

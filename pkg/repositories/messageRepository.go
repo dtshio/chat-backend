@@ -12,6 +12,7 @@ type MessageRepository struct {
 
 func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (interface {}, error) {
 	message, ok := data.(*models.Message)
+
     if !ok {
         return nil, mr.GenError(mr.InvalidData, message)
     }
@@ -21,8 +22,8 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 		return nil, mr.GenError(mr.InvalidData, message)
 	}
 
-	err1 := db.Table("messages").Create(message).Error
-	if err1 != nil {
+	err = db.Table("messages").Create(message).Error
+	if err != nil {
 		return nil, mr.GenError(mr.CreateError, message)
 	}
 
@@ -31,6 +32,7 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 
 func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {
     pagination, ok := data.(*core.Pagination)
+
     if !ok {
         return nil, mr.GenError(mr.InvalidData, pagination)
     }
@@ -54,13 +56,14 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interfa
 }
 
 func NewMessageRepository() *MessageRepository {
-	MessageRepo := &MessageRepository{}
+	repo := &MessageRepository{}
+
 	return &MessageRepository{
 		Repository: *core.NewRepository(
 			&models.Message{},
 			[]core.RepositoryMethod{
-				MessageRepo.CreateMessage,
-				MessageRepo.GetMessages,
+				repo.CreateMessage,
+				repo.GetMessages,
 			},
 		),
 	}

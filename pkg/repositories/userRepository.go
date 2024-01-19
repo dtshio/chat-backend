@@ -12,6 +12,7 @@ type UserRepository struct {
 
 func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface {}, error) {
 	user, ok := data.(*models.User)
+
     if !ok {
         return nil, ur.GenError(ur.InvalidData, user)
     }
@@ -21,8 +22,8 @@ func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface 
 		return nil, ur.GenError(ur.InvalidData, user)
 	}
 
-	err1 := db.Table("users").Create(user).Error
-	if err1 != nil {
+	err = db.Table("users").Create(user).Error
+	if err != nil {
 		return nil, ur.GenError(ur.CreateError, user)
 	}
 
@@ -31,6 +32,7 @@ func (ur *UserRepository) CreateUser(db *gorm.DB, data interface {}) (interface 
 
 func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interface {}, error) {
 	profile, ok := data.(*models.Profile)
+
 	if !ok {
 		return nil, ur.GenError(ur.InvalidData, profile)
 	}
@@ -40,8 +42,8 @@ func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interfa
 		return nil, ur.GenError(ur.InvalidData, profile)
 	}
 
-	err1 := db.Table("user_profiles").Create(profile).Error
-	if err1 != nil {
+	err = db.Table("user_profiles").Create(profile).Error
+	if err != nil {
 		return nil, ur.GenError(ur.CreateError, profile)
 	}
 
@@ -50,24 +52,28 @@ func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interfa
 
 func (ur *UserRepository) FindByEmail(db *gorm.DB, data interface {}) (interface {}, error) {
 	email := data.(string)
+
 	var user models.User
+
 	err := db.Table("users").Where("email = ?", email).First(&user).Error
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
-	return user, err
+	return user, nil
 }
 
 func (ur *UserRepository) FindByUsername(db *gorm.DB, data interface {}) (interface {}, error) {
 	username := data.(string)
+
 	var profile models.Profile
+
 	err := db.Table("user_profiles").Where("username = ?", username).First(&profile).Error
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
-	return profile, err
+	return profile, nil 
 }
 
 func (ur *UserRepository) GetProfiles(db *gorm.DB, data interface {}) (interface {}, error) {
@@ -81,16 +87,17 @@ func (ur *UserRepository) GetProfiles(db *gorm.DB, data interface {}) (interface
 }
 
 func NewUserRepository() *UserRepository {
-	userRepo := &UserRepository{}
+	repo := &UserRepository{}
+
 	return &UserRepository{
 		Repository: *core.NewRepository(
 			&models.User{},
 			[]core.RepositoryMethod{
-				userRepo.CreateUser,
-				userRepo.CreateProfile,
-				userRepo.FindByEmail,
-				userRepo.FindByUsername,
-				userRepo.GetProfiles,
+				repo.CreateUser,
+				repo.CreateProfile,
+				repo.FindByEmail,
+				repo.FindByUsername,
+				repo.GetProfiles,
 			},
 		),
 	}

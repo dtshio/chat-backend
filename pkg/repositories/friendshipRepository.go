@@ -21,8 +21,8 @@ func (fr *FriendshipRepository) CreateFriendshipRequest(db *gorm.DB, data interf
 		return nil, fr.GenError(fr.InvalidData, friendshipRequest)
 	}
 
-	err1 := db.Table("friendship_requests").Create(friendshipRequest).Error
-	if err1 != nil {
+	err = db.Table("friendship_requests").Create(friendshipRequest).Error
+	if err != nil {
 		return nil, fr.GenError(fr.CreateError, friendshipRequest)
 	}
 
@@ -41,8 +41,8 @@ func (fr *FriendshipRepository) CreateFriendship(db *gorm.DB, data interface {})
 		return nil, fr.GenError(fr.InvalidData, friendship)
 	}
 
-	err1 := db.Table("friendships").Create(friendship).Error
-	if err1 != nil {
+	err = db.Table("friendships").Create(friendship).Error
+	if err != nil {
 		return nil, fr.GenError(fr.CreateError, friendship)
 	}
 
@@ -50,10 +50,7 @@ func (fr *FriendshipRepository) CreateFriendship(db *gorm.DB, data interface {})
 }
 
 func (fr *FriendshipRepository) GetFriendships(db *gorm.DB, data interface {}) (interface {}, error) {
-	userID, ok := data.(string)
-	if !ok || userID == "" {
-        return nil, fr.GenError(fr.InvalidData, nil)
-    }
+	userID := data.(string)
 
 	friendships := &[]models.Friendship{}
 
@@ -174,17 +171,18 @@ func (fr *FriendshipRepository) AcceptFriendshipRequest(db *gorm.DB, data interf
 }
 
 func NewFriendshipRepository() *FriendshipRepository {
-	FriendshipRepo := &FriendshipRepository{}
+	repo := &FriendshipRepository{}
+
 	return &FriendshipRepository{
 		Repository: *core.NewRepository(
 			&models.Friendship{},
 			[]core.RepositoryMethod{
-				FriendshipRepo.CreateFriendship,
-				FriendshipRepo.GetFriendships,
-				FriendshipRepo.CreateFriendshipRequest,
-				FriendshipRepo.AcceptFriendshipRequest,
-				FriendshipRepo.GetFriendshipRequests,
-				FriendshipRepo.GetFriendshipRequest,
+				repo.CreateFriendship,
+				repo.GetFriendships,
+				repo.CreateFriendshipRequest,
+				repo.AcceptFriendshipRequest,
+				repo.GetFriendshipRequests,
+				repo.GetFriendshipRequest,
 			},
 		),
 	}
