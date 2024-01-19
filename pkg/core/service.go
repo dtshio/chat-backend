@@ -1,10 +1,11 @@
 package core
 
 import (
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-type ServiceMethod func(*gorm.DB, interface{}) (interface{}, error)
+type ServiceMethod func(*gorm.DB, *zap.Logger, interface{}) (interface{}, error)
 
 type Service struct {
 	methods []ServiceMethod

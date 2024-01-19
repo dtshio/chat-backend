@@ -24,7 +24,7 @@ func main() {
 			controllers.NewFriendshipController,
 			controllers.NewMessageController,
 			database.Open,
-			zap.NewProduction,
+			zap.NewDevelopment,
 		),
 		fx.Invoke(func(
 			_ *http.Server,
@@ -32,10 +32,16 @@ func main() {
 			fc *controllers.FriendshipController,
 			mc *controllers.MessageController,
 			db *gorm.DB,
+			log *zap.Logger,
 		) {
 			uc.SetDB(db)
+			uc.SetLogger(log)
+
 			fc.SetDB(db)
+			fc.SetLogger(log)
+
 			mc.SetDB(db)
+			mc.SetLogger(log)
 		}),
 	).Run()
 }
