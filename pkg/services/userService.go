@@ -80,9 +80,33 @@ func (us *UserService) FindByEmail(db *gorm.DB, log *zap.Logger, data interface{
 }
 
 func (us *UserService) GetProfiles(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+	userID, ok := data.(string)
+
+	if !ok || userID == "" {
+		return nil, us.GenError(us.InvalidData, nil)
+	}
+
 	repo := repositories.NewUserRepository()
 
-	dbRecord, err := repo.GetProfiles(db, data)
+	dbRecord, err := repo.GetProfiles(db, userID)
+	if err != nil {
+		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
+}
+
+func (us *UserService) GetProfile(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+	profileID, ok := data.(string)
+
+	if !ok || profileID == "" {
+		return nil, us.GenError(us.InvalidData, nil)
+	}
+
+	repo := repositories.NewUserRepository()
+
+	dbRecord, err := repo.GetProfile(db, profileID)
 	if err != nil {
 		log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
