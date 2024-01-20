@@ -24,7 +24,6 @@ func (us *UserService) CreateUser(db *gorm.DB, log *zap.Logger, data interface{}
 	duplicate, err := repo.FindByEmail(db, user.Email)
 	if err != nil {
 		log.Warn("Warn", zap.Any("Warn", err.Error()))
-		return nil, err
 	}
 
 	if duplicate != nil {
@@ -52,7 +51,6 @@ func (us *UserService) CreateProfile(db *gorm.DB, log *zap.Logger, data interfac
 	duplicate, err := repo.FindByUsername(db, profile.Username)
 	if err != nil {
 		log.Warn("Warn", zap.Any("Warn", err.Error()))
-		return nil, err
 	}
 
 	if duplicate != nil {
@@ -76,7 +74,6 @@ func (us *UserService) FindByEmail(db *gorm.DB, log *zap.Logger, data interface{
 	dbRecord, err := repo.FindByEmail(db, email)
 	if err != nil {
 		log.Warn("Warn", zap.Any("Warn", err.Error()))
-		return nil, err
 	}
 
 	return dbRecord, nil
