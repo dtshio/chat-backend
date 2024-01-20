@@ -25,6 +25,7 @@ func ServeMux(
 	userController *controllers.UserController,
 	messageController *controllers.MessageController,
 	friendshipController *controllers.FriendshipController,
+	groupController *controllers.GroupController,
 ) *http.ServeMux {
 	mux := http.NewServeMux()
 
@@ -41,6 +42,16 @@ func ServeMux(
 	Route(mux, "/friendship-requests/accept", friendshipController.HandleNewFriendship, CorsMiddleware, AuthMiddleware)
 	Route(mux, "/friendship-requests/list", friendshipController.HandleGetFriendshipRequests, CorsMiddleware, AuthMiddleware)
 	Route(mux, "/friendship-requests/delete", friendshipController.HandleDeleteFriendshipRequest, CorsMiddleware, AuthMiddleware)
+
+	Route(mux, "/group", groupController.HandleNewGroup, CorsMiddleware, AuthMiddleware)
+	Route(mux, "/group/list", groupController.HandleGetGroups, CorsMiddleware, AuthMiddleware)
+	Route(mux, "/group/list-by-profile", groupController.HandleGetGroupsByProfile, CorsMiddleware, AuthMiddleware)
+	Route(mux, "/group/delete", groupController.HandleDeleteGroup, CorsMiddleware, AuthMiddleware)
+
+	Route(mux, "/group/member", groupController.HandleAddMember, CorsMiddleware, AuthMiddleware)
+	Route(mux, "/group/member/get", groupController.HandleGetMember, CorsMiddleware, AuthMiddleware)
+	Route(mux, "/group/member/list", groupController.HandleGetMembers, CorsMiddleware, AuthMiddleware)
+	Route(mux, "/group/member/delete", groupController.HandleRemoveMember, CorsMiddleware, AuthMiddleware)
 
 	return mux
 }
