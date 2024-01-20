@@ -76,14 +76,17 @@ func (fs *FriendshipService) CreateFriendship(db *gorm.DB, log *zap.Logger, data
 
 	channelService := NewChannelService()
 
-	channel, err := channelService.CreateChannel(db, log, &models.Channel{})
+	channel := &models.Channel{}
+	channel.Type = "DIRECT_MESSAGE"
+
+	channelRecord, err := channelService.CreateChannel(db, log, channel)
 	if err != nil {
 		log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	friendship := &models.Friendship{}
-	friendship.ChannelID = channel.(models.Channel).ID
+	friendship.ChannelID = channelRecord.(models.Channel).ID
 	friendship.InitiatorID = models.BigInt(initiatorID)
 	friendship.FriendID = models.BigInt(friendID)
 

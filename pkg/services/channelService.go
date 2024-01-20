@@ -15,8 +15,6 @@ type ChannelService struct {
 func (cs *ChannelService) CreateChannel(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
 	channel := data.(*models.Channel)
 
-	channel.Type = "DIRECT_MESSAGE"
-
 	repo := repositories.NewChannelRepository()
 
 	dbRecord, err := repo.CreateChannel(db, channel)
