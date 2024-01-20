@@ -46,15 +46,16 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 
 	service := services.NewMessageService()
 
-	dbRecord, err := service.CreateMessage(mc.db, mc.log, message)
+	messageObject, err := service.CreateMessage(mc.db, mc.log, message)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	res, err := json.Marshal(dbRecord)
+	res, err := json.Marshal(messageObject)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, nil)
+		return
 	}
 
 	mc.Response(w, http.StatusCreated, res)
@@ -80,15 +81,16 @@ func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Re
 
 	service := services.NewMessageService()
 
-	dbRecords, err := service.GetMessages(mc.db, mc.log, payload)
+	messages, err := service.GetMessages(mc.db, mc.log, payload)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	res, err := json.Marshal(dbRecords)
+	res, err := json.Marshal(messages)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, nil)
+		return
 	}
 
 	mc.Response(w, http.StatusOK, res)
