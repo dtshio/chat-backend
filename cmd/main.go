@@ -23,6 +23,7 @@ func main() {
 			controllers.NewUserController,
 			controllers.NewFriendshipController,
 			controllers.NewMessageController,
+			controllers.NewGroupController,
 			database.Open,
 			zap.NewDevelopment,
 		),
@@ -31,6 +32,7 @@ func main() {
 			uc *controllers.UserController,
 			fc *controllers.FriendshipController,
 			mc *controllers.MessageController,
+			gc *controllers.GroupController,
 			db *gorm.DB,
 			log *zap.Logger,
 		) {
@@ -42,6 +44,9 @@ func main() {
 
 			mc.SetDB(db)
 			mc.SetLogger(log)
+
+			gc.SetDB(db)
+			gc.SetLogger(log)
 		}),
 	).Run()
 }
