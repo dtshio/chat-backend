@@ -53,8 +53,8 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	profile.UserID = userRecord.(models.User).ID
+	profile.ID = userRecord.(models.User).DefaultProfileID
 
 	profileRecord, err := service.CreateProfile(uc.db, uc.log, profile)
 	if err != nil {

@@ -35,6 +35,7 @@ func (u *User) BeforeCreateRecord() error {
 	}
 
 	u.Password = u.HashPassword(u.Password)
+	u.DefaultProfileID = BigInt(core.GenerateID())
 
 	return nil
 }

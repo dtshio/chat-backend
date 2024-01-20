@@ -37,7 +37,7 @@ func (ur *UserRepository) CreateProfile(db *gorm.DB, data interface {}) (interfa
 		return nil, ur.GenError(ur.InvalidData, profile)
 	}
 
-	err := profile.BeforeCreateRecord()
+	err := profile.BeforeCreateRecord(profile.ID)
 	if err != nil {
 		return nil, ur.GenError(ur.InvalidData, profile)
 	}
