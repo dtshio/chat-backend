@@ -77,13 +77,31 @@ func (ur *UserRepository) FindByUsername(db *gorm.DB, data interface {}) (interf
 }
 
 func (ur *UserRepository) GetProfiles(db *gorm.DB, data interface {}) (interface {}, error) {
+	userID := data.(string)
+
 	var profiles []models.Profile
-	err := db.Table("user_profiles").Where("user_id = ?", data).Find(&profiles).Error
+
+	err := db.Table("user_profiles").Where("user_id = ?", userID).Find(&profiles).Error
+
 	if err != nil {
 		return nil, nil
 	}
 
 	return profiles, err
+}
+
+
+func (ur *UserRepository) GetProfile(db *gorm.DB, data interface {}) (interface {}, error) {
+	profileID := data.(string)
+
+	var profile []models.Profile
+
+	err := db.Table("user_profiles").Where("id = ?", profileID).Find(&profile).Error
+	if err != nil {
+		return nil, nil
+	}
+
+	return profile, err
 }
 
 func NewUserRepository() *UserRepository {
