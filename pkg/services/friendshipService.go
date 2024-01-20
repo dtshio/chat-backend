@@ -83,7 +83,7 @@ func (fs *FriendshipService) CreateFriendship(db *gorm.DB, log *zap.Logger, data
 	}
 
 	friendship := &models.Friendship{}
-	friendship.DmChannelID = channel.(models.Channel).ID
+	friendship.ChannelID = channel.(models.Channel).ID
 	friendship.InitiatorID = models.BigInt(initiatorID)
 	friendship.FriendID = models.BigInt(friendID)
 
@@ -156,7 +156,7 @@ func (fs *FriendshipService) DeleteFriendship(db *gorm.DB, log *zap.Logger, data
 		return nil, err
 	}
 
-	channelID := strconv.Itoa(int(dbRecord.(models.Friendship).DmChannelID))
+	channelID := strconv.Itoa(int(dbRecord.(models.Friendship).ChannelID))
 
 	_, err = repo.DeleteFriendship(db, dbRecord)
 	if err != nil {

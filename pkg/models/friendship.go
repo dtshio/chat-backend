@@ -8,8 +8,8 @@ import (
 
 type FriendshipBase struct {
 	ID          BigInt `json:"id" gorm:"primaryKey"`
-	InitiatorID BigInt `json:"initiator_id" gorm:"not null"`
-	FriendID    BigInt `json:"friend_id" gorm:"not null"`
+	InitiatorID BigInt `json:"initiator_id" gorm:"not null REFERENCES profiles(id)"`
+	FriendID    BigInt `json:"friend_id" gorm:"not null REFERENCES profiles(id)"`
 }
 
 type FriendshipRequest struct {
@@ -19,7 +19,7 @@ type FriendshipRequest struct {
 
 type Friendship struct {
 	FriendshipBase
-	DmChannelID BigInt
+	ChannelID BigInt `json:"channel_id" gorm:"not null REFERENCES channels(id)"`
 }
 
 func (fr *FriendshipRequest) BeforeCreateRecord() error {
