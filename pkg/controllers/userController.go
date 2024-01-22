@@ -109,9 +109,10 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profile := &models.Profile{}
-	profile.UserID = models.BigInt(userRecord.(models.User).ID)
+	profile.UserID = userRecord.(models.User).ID
+	userID := fmt.Sprint(userRecord.(models.User).ID)
 
-	profileRecords, err := service.GetProfiles(uc.db, uc.log, profile.UserID)
+	profileRecords, err := service.GetProfiles(uc.db, uc.log, userID)
 	if err != nil {
 		uc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -120,7 +121,6 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	profilesJson, _ := json.Marshal(profileRecords.([]models.Profile))
 	userJson, _ := json.Marshal(userRecord)
 
-	userID := fmt.Sprint(userRecord.(models.User).ID)
 	token := userID + "." + auth.SignToken(userID)
 
 	res := fmt.Sprintf(`{"token": "%s", "user": %s, "profiles": %s}`, token, userJson, profilesJson)
