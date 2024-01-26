@@ -8,14 +8,11 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type GroupController struct {
 	core.Controller
-	db *gorm.DB
-	log *zap.Logger
+	service *services.GroupService
 }
 
 func (mc *GroupController) HandleNewGroup(w http.ResponseWriter, r *http.Request) {
@@ -44,9 +41,7 @@ func (mc *GroupController) HandleNewGroup(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	service := services.NewGroupService()
-
-	groupRecord, err := service.CreateGroup(mc.db, mc.log, group)
+	groupRecord, err := mc.service.CreateGroup(group)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -58,7 +53,7 @@ func (mc *GroupController) HandleNewGroup(w http.ResponseWriter, r *http.Request
 		ChannelID: groupRecord.(models.Group).ChannelID,
 	}
 
-	memberRecord, err := service.AddGroupMember(mc.db, mc.log, groupMember)
+	memberRecord, err := mc.service.AddGroupMember(groupMember)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -88,9 +83,7 @@ func (mc *GroupController) HandleGetGroups(w http.ResponseWriter, r *http.Reques
 
 	groups := &[]models.Group{}
 
-	service := services.NewGroupService()
-
-	dbRecords, err := service.GetGroups(mc.db, mc.log, groups)
+	dbRecords, err := mc.service.GetGroups(groups)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -125,9 +118,7 @@ func (mc *GroupController) HandleDeleteGroup(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	service := services.NewGroupService()
-
-	_, err := service.DeleteGroup(mc.db, mc.log, id)
+	_, err := mc.service.DeleteGroup(id)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -162,9 +153,7 @@ func (mc *GroupController) HandleAddMember(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	service := services.NewGroupService()
-
-	dbRecord, err := service.AddGroupMember(mc.db, mc.log, groupMember)
+	dbRecord, err := mc.service.AddGroupMember(groupMember)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -199,9 +188,7 @@ func (mc *GroupController) HandleGetMembers(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	service := services.NewGroupService()
-
-	dbRecords, err := service.GetGroupMembers(mc.db, mc.log, groupID)
+	dbRecords, err := mc.service.GetGroupMembers(groupID)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -236,9 +223,7 @@ func (mc *GroupController) HandleRemoveMember(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	service := services.NewGroupService()
-
-	_, err := service.DeleteGroupMember(mc.db, mc.log, id)
+	_, err := mc.service.DeleteGroupMember(id)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -267,9 +252,7 @@ func (mc *GroupController) HandleGetMember(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	service := services.NewGroupService()
-
-	dbRecord, err := service.GetGroupMember(mc.db, mc.log, id)
+	dbRecord, err := mc.service.GetGroupMember(id)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -299,9 +282,7 @@ func (mc *GroupController) HandleGetGroupsByProfile(w http.ResponseWriter, r *ht
 
 	profileID := payload["profile_id"].(string)
 
-	service := services.NewGroupService()
-
-	dbRecords, err := service.GetGroupsByProfile(mc.db, mc.log, profileID)
+	dbRecords, err := mc.service.GetGroupsByProfile(profileID)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -316,24 +297,8 @@ func (mc *GroupController) HandleGetGroupsByProfile(w http.ResponseWriter, r *ht
 	mc.Response(w, http.StatusOK, res)
 }
 
-func NewGroupController(db *gorm.DB, log *zap.Logger) *GroupController {
-	controller := &GroupController{
-		db: db,
-		log: log,
-	}
-
+func NewGroupController(service *services.GroupService) *GroupController {
 	return &GroupController{
-		Controller: *core.NewController([]core.ControllerMethod{
-			controller.HandleNewGroup,
-			controller.HandleGetGroups,
-			controller.HandleDeleteGroup,
-			controller.HandleAddMember,
-			controller.HandleGetMembers,
-			controller.HandleRemoveMember,
-			controller.HandleGetMember,
-			controller.HandleGetGroupsByProfile,
-		}),
-		db: db,
-		log: log,
+		service: service,
 	}
 }

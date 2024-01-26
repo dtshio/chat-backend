@@ -9,16 +9,12 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type UserController struct {
 	core.Controller
-	db *gorm.DB
-	log *zap.Logger
+	service *services.UserService
 }
-
 
 func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	if uc.IsAllowedMethod(r, []string{"POST"}) == false {
@@ -45,9 +41,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	service := services.NewUserService()
-
-	userRecord, err := service.CreateUser(uc.db, uc.log, user)
+	userRecord, err := uc.service.CreateUser(user)
 	if err != nil {
 		uc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -56,7 +50,7 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	profile.UserID = userRecord.(models.User).ID
 	profile.ID = userRecord.(models.User).DefaultProfileID
 
-	profileRecord, err := service.CreateProfile(uc.db, uc.log, profile)
+	profileRecord, err := uc.service.CreateProfile(profile)
 	if err != nil {
 		uc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -95,9 +89,7 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	service := services.NewUserService()
-
-	userRecord, err := service.FindByEmail(uc.db, uc.log, user.Email)
+	userRecord, err := uc.service.FindByEmail(user.Email)
 	if userRecord == nil {
 		uc.Response(w, http.StatusNotFound, err)
 		return
@@ -112,7 +104,7 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	profile.UserID = userRecord.(models.User).ID
 	userID := fmt.Sprint(userRecord.(models.User).ID)
 
-	profileRecords, err := service.GetProfiles(uc.db, uc.log, userID)
+	profileRecords, err := uc.service.GetProfiles(userID)
 	if err != nil {
 		uc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -128,18 +120,8 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	uc.Response(w, http.StatusOK, res)
 }
 
-func NewUserController(db *gorm.DB, log *zap.Logger) *UserController {
-	controller := &UserController{
-		db: db,
-		log: log,
-	}
-
+func NewUserController(service *services.UserService) *UserController {
 	return &UserController{
-		Controller: *core.NewController([]core.ControllerMethod{
-			controller.HandleSignUp,
-			controller.HandleSignIn,
-		}),
-		db: db,
-		log: log,
+		service: service,
 	}
 }

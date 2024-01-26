@@ -8,14 +8,11 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type FriendshipController struct {
 	core.Controller
-	db *gorm.DB
-	log *zap.Logger
+	service *services.FriendshipService
 }
 
 func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *http.Request) {
@@ -34,9 +31,7 @@ func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *ht
 		return
 	}
 
-	service := services.NewFriendshipService()
-
-	dbRecord, err := service.CreateFriendship(fc.db, fc.log, payload)
+	dbRecord, err := fc.service.CreateFriendship(payload)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -70,9 +65,7 @@ func (fc *FriendshipController) HandleNewFriendshipRequest(w http.ResponseWriter
 		return
 	}
 
-	service := services.NewFriendshipService()
-
-	dbRecord, err := service.CreateFriendshipRequest(fc.db, fc.log, payload)
+	dbRecord, err := fc.service.CreateFriendshipRequest(payload)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -96,9 +89,7 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 		return
 	}
 
-	service := services.NewFriendshipService()
-
-	dbRecords, err := service.GetFriendships(fc.db, fc.log, userID)
+	dbRecords, err := fc.service.GetFriendships(userID)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -113,7 +104,6 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 	for _, friendship := range dbRecords.([]models.Friendship) {
 		res += fmt.Sprint("{\"id\": \"", friendship.ID, "\", \"initiator_id\": \"", friendship.InitiatorID, "\", \"friend_id\": \"", friendship.FriendID, "\"},")
 	}
-	fc.log.Info(res)
 
 	fc.Response(w, http.StatusOK, fmt.Sprint("[", res[:len(res) - 1], "]"))
 }
@@ -126,9 +116,7 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 
 	userID := strings.Split(strings.Split(r.Header.Get("Authorization"), "Bearer ")[1], ".")[0]
 
-	service := services.NewFriendshipService()
-
-	dbRecords, err := service.GetFriendshipRequests(fc.db, fc.log, userID)
+	dbRecords, err := fc.service.GetFriendshipRequests(userID)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -157,9 +145,7 @@ func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r 
 		return
 	}
 
-	service := services.NewFriendshipService()
-
-	_, err := service.DeleteFriendship(fc.db, fc.log, friendshipID)
+	_, err := fc.service.DeleteFriendship(friendshipID)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -182,9 +168,7 @@ func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWri
 		return
 	}
 
-	service := services.NewFriendshipService()
-
-	_, err := service.DeleteFriendshipRequest(fc.db, fc.log, requestID)
+	_, err := fc.service.DeleteFriendshipRequest(requestID)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -193,22 +177,8 @@ func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWri
 	fc.Response(w, http.StatusOK, "Deleted")
 }
 
-func NewFriendshipController(db *gorm.DB, log *zap.Logger) *FriendshipController {
-	controller := &FriendshipController{
-		db: db,
-		log: log,
-	}
-
+func NewFriendshipController(service *services.FriendshipService) *FriendshipController {
 	return &FriendshipController{
-		Controller: *core.NewController([]core.ControllerMethod{
-			controller.HandleNewFriendship,
-			controller.HandleGetFriendships,
-			controller.HandleGetFriendshipRequests,
-			controller.HandleNewFriendshipRequest,
-			controller.HandleDeleteFriendship,
-			controller.HandleDeleteFriendshipRequest,
-		}),
-		db: db,
-		log: log,
+		service: service,
 	}
 }

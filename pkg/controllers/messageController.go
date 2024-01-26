@@ -8,14 +8,11 @@ import (
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/services"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type MessageController struct {
 	core.Controller
-	db *gorm.DB
-	log *zap.Logger
+	service *services.MessageService
 }
 
 func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
@@ -44,9 +41,7 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	service := services.NewMessageService()
-
-	messageObject, err := service.CreateMessage(mc.db, mc.log, message)
+	messageObject, err := mc.service.CreateMessage(message)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -79,9 +74,7 @@ func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	service := services.NewMessageService()
-
-	messages, err := service.GetMessages(mc.db, mc.log, payload)
+	messages, err := mc.service.GetMessages(payload)
 	if err != nil {
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
@@ -96,18 +89,8 @@ func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Re
 	mc.Response(w, http.StatusOK, res)
 }
 
-func NewMessageController(db *gorm.DB, log *zap.Logger) *MessageController {
-	controller := &MessageController{
-		db: db,
-		log: log,
-	}
-
+func NewMessageController(service *services.MessageService) *MessageController {
 	return &MessageController{
-		Controller: *core.NewController([]core.ControllerMethod{
-			controller.HandleNewMessage,
-			controller.HandleGetMessages,
-		}),
-		db: db,
-		log: log,
+		service: service,
 	}
 }
