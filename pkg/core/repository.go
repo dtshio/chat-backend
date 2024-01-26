@@ -1,10 +1,6 @@
 package core
 
-import (
-	"gorm.io/gorm"
-)
-
-type RepositoryMethod func(*gorm.DB, interface{}) (interface{}, error)
+type RepositoryMethod func(interface{}) (interface{}, error)
 
 type Repository struct {
 	target interface{}
