@@ -8,9 +8,10 @@ import (
 
 type FriendshipRepository struct {
 	core.Repository
+	db *gorm.DB
 }
 
-func (fr *FriendshipRepository) CreateFriendshipRequest(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) CreateFriendshipRequest(data interface {}) (interface {}, error) {
 	friendshipRequest, ok := data.(*models.FriendshipRequest)
     if !ok {
         return nil, fr.GenError(fr.InvalidData, friendshipRequest)
@@ -21,7 +22,7 @@ func (fr *FriendshipRepository) CreateFriendshipRequest(db *gorm.DB, data interf
 		return nil, fr.GenError(fr.InvalidData, friendshipRequest)
 	}
 
-	err = db.Table("friendship_requests").Create(friendshipRequest).Error
+	err = fr.db.Table("friendship_requests").Create(friendshipRequest).Error
 	if err != nil {
 		return nil, fr.GenError(fr.CreateError, friendshipRequest)
 	}
@@ -29,7 +30,7 @@ func (fr *FriendshipRepository) CreateFriendshipRequest(db *gorm.DB, data interf
 	return *friendshipRequest, nil
 }
 
-func (fr *FriendshipRepository) CreateFriendship(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) CreateFriendship(data interface {}) (interface {}, error) {
 	friendship, ok := data.(*models.Friendship)
 
 	if !ok {
@@ -41,7 +42,7 @@ func (fr *FriendshipRepository) CreateFriendship(db *gorm.DB, data interface {})
 		return nil, fr.GenError(fr.InvalidData, friendship)
 	}
 
-	err = db.Table("friendships").Create(friendship).Error
+	err = fr.db.Table("friendships").Create(friendship).Error
 	if err != nil {
 		return nil, fr.GenError(fr.CreateError, friendship)
 	}
@@ -49,24 +50,24 @@ func (fr *FriendshipRepository) CreateFriendship(db *gorm.DB, data interface {})
 	return *friendship, nil
 }
 
-func (fr *FriendshipRepository) GetFriendships(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) GetFriendships(data interface {}) (interface {}, error) {
 	userID := data.(string)
 
 	friendships := &[]models.Friendship{}
 
-	err := db.Table("friendships").Where("initiator_id = ? OR friend_id = ?", userID, userID).Find(friendships).Error
+	err := fr.db.Table("friendships").Where("initiator_id = ? OR friend_id = ?", userID, userID).Find(&friendships).Error
 	if err != nil {
-		return nil, fr.GenError(fr.NotFoundError, friendships)
+		return nil, err
 	}
 	
 	if len(*friendships) == 0 {
-		return nil, fr.GenError(fr.NotFoundError, friendships)
+		return nil, nil
 	}
 
-	return *friendships, err
+	return *friendships, nil
 }
 
-func (fr *FriendshipRepository) GetFriendship(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) GetFriendship(data interface {}) (interface {}, error) {
 	id, ok := data.(string)
 
 	if !ok {
@@ -75,7 +76,7 @@ func (fr *FriendshipRepository) GetFriendship(db *gorm.DB, data interface {}) (i
 
 	friendship := &models.Friendship{}
 	
-	err := db.Table("friendships").Where("id = ?", id).First(friendship).Error
+	err := fr.db.Table("friendships").Where("id = ?", id).First(friendship).Error
 	if err != nil {
 		return nil, fr.GenError(fr.NotFoundError, friendship)
 	}
@@ -83,14 +84,14 @@ func (fr *FriendshipRepository) GetFriendship(db *gorm.DB, data interface {}) (i
 	return *friendship, err
 }
 
-func (fr *FriendshipRepository) DeleteFriendship(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) DeleteFriendship(data interface {}) (interface {}, error) {
 	friendship, ok := data.(models.Friendship)
 
 	if !ok {
 		return nil, fr.GenError(fr.InvalidData, nil)
 	}
 
-	err := db.Table("friendships").Delete(friendship).Error
+	err := fr.db.Table("friendships").Delete(friendship).Error
 	if err != nil {
 		return nil, fr.GenError(fr.DeleteError, friendship)
 	}
@@ -98,7 +99,7 @@ func (fr *FriendshipRepository) DeleteFriendship(db *gorm.DB, data interface {})
 	return nil, err
 }
 	
-func (fr *FriendshipRepository) GetFriendshipRequests(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) GetFriendshipRequests(data interface {}) (interface {}, error) {
 	userID := data.(string)
 
 	if userID == "" {
@@ -107,7 +108,7 @@ func (fr *FriendshipRepository) GetFriendshipRequests(db *gorm.DB, data interfac
 
 	friendshipRequests := &[]models.FriendshipRequest{}
 
-	err := db.Table("friendship_requests").Where("(initiator_id = ? OR friend_id = ?) AND accepted = false", userID, userID).Find(friendshipRequests).Error
+	err := fr.db.Table("friendship_requests").Where("(initiator_id = ? OR friend_id = ?) AND accepted = false", userID, userID).Find(friendshipRequests).Error
 	if err != nil {
 		return nil, fr.GenError(fr.NotFoundError, friendshipRequests)
 	}
@@ -119,7 +120,7 @@ func (fr *FriendshipRepository) GetFriendshipRequests(db *gorm.DB, data interfac
 	return *friendshipRequests, err
 }
 
-func (fr *FriendshipRepository) GetFriendshipRequest(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) GetFriendshipRequest(data interface {}) (interface {}, error) {
 	id, ok := data.(*models.BigInt)
 
 	if !ok {
@@ -128,7 +129,7 @@ func (fr *FriendshipRepository) GetFriendshipRequest(db *gorm.DB, data interface
 
 	friendshipRequest := &models.FriendshipRequest{}
 
-	err := db.Table("friendship_requests").Where("id = ?", id).First(friendshipRequest).Error
+	err := fr.db.Table("friendship_requests").Where("id = ?", id).First(friendshipRequest).Error
 	if err != nil {
 		return nil, fr.GenError(fr.NotFoundError, friendshipRequest)
 	}
@@ -136,7 +137,7 @@ func (fr *FriendshipRepository) GetFriendshipRequest(db *gorm.DB, data interface
 	return *friendshipRequest, err
 }
 
-func (fr *FriendshipRepository) DeleteFriendshipRequest(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) DeleteFriendshipRequest(data interface {}) (interface {}, error) {
 	requestID, ok := data.(string)
 
 	if !ok {
@@ -145,7 +146,7 @@ func (fr *FriendshipRepository) DeleteFriendshipRequest(db *gorm.DB, data interf
 
 	friendshipRequest := &models.FriendshipRequest{}
 
-	err := db.Table("friendship_requests").Where("id = ? AND accepted = false", requestID).Delete(friendshipRequest).Error
+	err := fr.db.Table("friendship_requests").Where("id = ? AND accepted = false", requestID).Delete(friendshipRequest).Error
 	if err != nil {
 		return nil, fr.GenError(fr.DeleteError, friendshipRequest)
 	}
@@ -153,7 +154,7 @@ func (fr *FriendshipRepository) DeleteFriendshipRequest(db *gorm.DB, data interf
 	return nil, err
 }
 
-func (fr *FriendshipRepository) AcceptFriendshipRequest(db *gorm.DB, data interface {}) (interface {}, error) {
+func (fr *FriendshipRepository) AcceptFriendshipRequest(data interface {}) (interface {}, error) {
 	requestID, ok := data.(int64)
 
 	if !ok {
@@ -162,7 +163,7 @@ func (fr *FriendshipRepository) AcceptFriendshipRequest(db *gorm.DB, data interf
 
 	friendshipRequest := &models.FriendshipRequest{}
 
-	err := db.Table("friendship_requests").Where("id = ?", requestID).Update("accepted", true).Error
+	err := fr.db.Table("friendship_requests").Where("id = ?", requestID).Update("accepted", true).Error
 	if err != nil {
 		return nil, fr.GenError(fr.DeleteError, friendshipRequest)
 	}
@@ -170,20 +171,19 @@ func (fr *FriendshipRepository) AcceptFriendshipRequest(db *gorm.DB, data interf
 	return nil, err
 }
 
-func NewFriendshipRepository() *FriendshipRepository {
-	repo := &FriendshipRepository{}
-
+func NewFriendshipRepository(db *gorm.DB) *FriendshipRepository {
 	return &FriendshipRepository{
 		Repository: *core.NewRepository(
 			&models.Friendship{},
 			[]core.RepositoryMethod{
-				repo.CreateFriendship,
-				repo.GetFriendships,
-				repo.CreateFriendshipRequest,
-				repo.AcceptFriendshipRequest,
-				repo.GetFriendshipRequests,
-				repo.GetFriendshipRequest,
+				(&FriendshipRepository{}).CreateFriendship,
+				(&FriendshipRepository{}).GetFriendships,
+				(&FriendshipRepository{}).CreateFriendshipRequest,
+				(&FriendshipRepository{}).AcceptFriendshipRequest,
+				(&FriendshipRepository{}).GetFriendshipRequests,
+				(&FriendshipRepository{}).GetFriendshipRequest,
 			},
 		),
+		db: db,
 	}
 }

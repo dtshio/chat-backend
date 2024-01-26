@@ -8,9 +8,10 @@ import (
 
 type ChannelRepository struct {
 	core.Repository
+	db *gorm.DB
 }
 
-func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (interface {}, error) {
+func (cr *ChannelRepository) CreateChannel(data interface {}) (interface {}, error) {
 	channel, ok := data.(*models.Channel)
 
     if !ok {
@@ -22,7 +23,7 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 		return nil, cr.GenError(cr.InvalidData, channel)
 	}
 
-	err = db.Table("channels").Create(channel).Error
+	err = cr.db.Table("channels").Create(channel).Error
 	if err != nil {
 		return nil, cr.GenError(cr.CreateError, channel)
 	}
@@ -30,14 +31,14 @@ func (cr *ChannelRepository) CreateChannel(db *gorm.DB, data interface {}) (inte
 	return *channel, nil
 }
 
-func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interface {}, error) {
+func (cr *ChannelRepository) GetChannels(data interface {}) (interface {}, error) {
 	channels, ok := data.(*[]models.Channel)
 
 	if !ok {
 		return nil, cr.GenError(cr.InvalidData, channels)
 	}
 
-	err := db.Table("channels").Find(channels).Error
+	err := cr.db.Table("channels").Find(channels).Error
 	if err != nil {
 		return nil, cr.GenError(cr.NotFoundError, channels)
 	}
@@ -45,10 +46,10 @@ func (cr *ChannelRepository) GetChannels(db *gorm.DB, data interface {}) (interf
 	return *channels, err
 }
 
-func (cr *ChannelRepository) DeleteChannel(db *gorm.DB, data interface {}) (interface {}, error) {
+func (cr *ChannelRepository) DeleteChannel(data interface {}) (interface {}, error) {
 	id := data.(string)
 
-	err := db.Table("channels").Where("id = ?", id).Delete(&models.Channel{}).Error
+	err := cr.db.Table("channels").Where("id = ?", id).Delete(&models.Channel{}).Error
 	if err != nil {
 		return nil, cr.GenError(cr.DeleteError, nil)
 	}
@@ -56,18 +57,16 @@ func (cr *ChannelRepository) DeleteChannel(db *gorm.DB, data interface {}) (inte
 	return nil, err
 }
 
-func NewChannelRepository() *ChannelRepository {
-	repo := &ChannelRepository{}
-
+func NewChannelRepository(db *gorm.DB) *ChannelRepository {
 	return &ChannelRepository{
 		Repository: *core.NewRepository(
 			&models.Channel{},
 			[]core.RepositoryMethod{
-				repo.CreateChannel,
-				repo.GetChannels,
-				repo.DeleteChannel,
+				(&ChannelRepository{}).CreateChannel,
+				(&ChannelRepository{}).GetChannels,
+				(&ChannelRepository{}).DeleteChannel,
 			},
 		),
+		db: db,
 	}
 }
-

@@ -8,9 +8,10 @@ import (
 
 type GroupRepository struct {
 	core.Repository
+	db *gorm.DB
 }
 
-func (gr *GroupRepository) CreateGroup(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) CreateGroup(data interface {}) (interface {}, error) {
 	group, ok := data.(*models.Group)
 
     if !ok {
@@ -22,7 +23,7 @@ func (gr *GroupRepository) CreateGroup(db *gorm.DB, data interface {}) (interfac
 		return nil, gr.GenError(gr.InvalidData, group)
 	}
 
-	err = db.Table("groups").Create(group).Error
+	err = gr.db.Table("groups").Create(group).Error
 	if err != nil {
 		return nil, gr.GenError(gr.CreateError, group)
 	}
@@ -30,12 +31,12 @@ func (gr *GroupRepository) CreateGroup(db *gorm.DB, data interface {}) (interfac
 	return *group, nil
 }
 
-func (gr *GroupRepository) GetGroup(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) GetGroup(data interface {}) (interface {}, error) {
 	id := data.(string)
 
 	group := &models.Group{}
 
-	err := db.Table("groups").Where("id = ?", id).First(group).Error
+	err := gr.db.Table("groups").Where("id = ?", id).First(group).Error
 	if err != nil {
 		return nil, gr.GenError(gr.NotFoundError, group)
 	}
@@ -43,14 +44,14 @@ func (gr *GroupRepository) GetGroup(db *gorm.DB, data interface {}) (interface {
 	return *group, nil
 }
 
-func (gr *GroupRepository) GetGroups(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) GetGroups(data interface {}) (interface {}, error) {
 	groups, ok := data.(*[]models.Group)
 
 	if !ok {
 		return nil, gr.GenError(gr.InvalidData, groups)
 	}
 
-	err := db.Table("groups").Find(groups).Error
+	err := gr.db.Table("groups").Find(groups).Error
 	if err != nil {
 		return nil, gr.GenError(gr.NotFoundError, groups)
 	}
@@ -58,10 +59,10 @@ func (gr *GroupRepository) GetGroups(db *gorm.DB, data interface {}) (interface 
 	return *groups, err
 }
 
-func (gr *GroupRepository) DeleteGroup(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) DeleteGroup(data interface {}) (interface {}, error) {
 	id := data.(string)
 
-	err := db.Table("groups").Where("id = ?", id).Delete(&models.Group{}).Error
+	err := gr.db.Table("groups").Where("id = ?", id).Delete(&models.Group{}).Error
 	if err != nil {
 		return nil, gr.GenError(gr.DeleteError, nil)
 	}
@@ -69,7 +70,7 @@ func (gr *GroupRepository) DeleteGroup(db *gorm.DB, data interface {}) (interfac
 	return nil, err
 }
 
-func (gr *GroupRepository) AddGroupMember(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) AddGroupMember(data interface {}) (interface {}, error) {
 	groupMember, ok := data.(*models.GroupMember)
 
 	if !ok {
@@ -81,7 +82,7 @@ func (gr *GroupRepository) AddGroupMember(db *gorm.DB, data interface {}) (inter
 		return nil, gr.GenError(gr.InvalidData, groupMember)
 	}
 
-	err = db.Table("group_members").Create(groupMember).Error
+	err = gr.db.Table("group_members").Create(groupMember).Error
 	if err != nil {
 		return nil, gr.GenError(gr.CreateError, groupMember)
 	}
@@ -89,7 +90,7 @@ func (gr *GroupRepository) AddGroupMember(db *gorm.DB, data interface {}) (inter
 	return *groupMember, nil
 }
 
-func (gr *GroupRepository) GetGroupMembers(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) GetGroupMembers(data interface {}) (interface {}, error) {
 	groupID, ok := data.(string)
 
 	if !ok {
@@ -97,7 +98,7 @@ func (gr *GroupRepository) GetGroupMembers(db *gorm.DB, data interface {}) (inte
 	}
 
 	groupMembers := &[]models.GroupMember{}
-	err := db.Table("group_members").Where("group_id = ?", groupID).Find(groupMembers).Error
+	err := gr.db.Table("group_members").Where("group_id = ?", groupID).Find(groupMembers).Error
 	if err != nil {
 		return nil, gr.GenError(gr.NotFoundError, groupMembers)
 	}
@@ -105,14 +106,14 @@ func (gr *GroupRepository) GetGroupMembers(db *gorm.DB, data interface {}) (inte
 	return *groupMembers, err
 }
 
-func (gr *GroupRepository) DeleteGroupMember(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) DeleteGroupMember(data interface {}) (interface {}, error) {
 	id, ok := data.(string)
 	
 	if !ok {
 		return nil, gr.GenError(gr.InvalidData, id)
 	}
 
-	err := db.Table("group_members").Where("id = ?", id).Delete(&models.GroupMember{}).Error
+	err := gr.db.Table("group_members").Where("id = ?", id).Delete(&models.GroupMember{}).Error
 	if err != nil {
 		return nil, gr.GenError(gr.DeleteError, nil)
 	}
@@ -120,7 +121,7 @@ func (gr *GroupRepository) DeleteGroupMember(db *gorm.DB, data interface {}) (in
 	return nil, err
 }
 
-func (gr *GroupRepository) GetGroupMember(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) GetGroupMember(data interface {}) (interface {}, error) {
 	groupMemberID, ok := data.(string)
 
 	if !ok {
@@ -129,7 +130,7 @@ func (gr *GroupRepository) GetGroupMember(db *gorm.DB, data interface {}) (inter
 
 	var groupMember models.GroupMember
 
-	err := db.Table("group_members").Where("id = ?", groupMemberID).First(&groupMember).Error
+	err := gr.db.Table("group_members").Where("id = ?", groupMemberID).First(&groupMember).Error
 	if err != nil {
 		return nil, gr.GenError(gr.NotFoundError, groupMemberID)
 	}
@@ -137,7 +138,7 @@ func (gr *GroupRepository) GetGroupMember(db *gorm.DB, data interface {}) (inter
 	return groupMember, nil
 }
 
-func (gr *GroupRepository) GetGroupsByProfile(db *gorm.DB, data interface {}) (interface {}, error) {
+func (gr *GroupRepository) GetGroupsByProfile(data interface {}) (interface {}, error) {
 	profileID, ok := data.(string)
 
 	if !ok {
@@ -146,9 +147,9 @@ func (gr *GroupRepository) GetGroupsByProfile(db *gorm.DB, data interface {}) (i
 
 	groups := &[]models.Group{}
 
-	db = db.Table("group_members").Joins("JOIN groups ON group_members.group_id = groups.id")
-	db = db.Where("group_members.profile_id = ?", profileID)
-	err := db.Select("DISTINCT groups.*").Find(&groups).Error
+	gr.db = gr.db.Table("group_members").Joins("JOIN groups ON group_members.group_id = groups.id")
+	gr.db = gr.db.Where("group_members.profile_id = ?", profileID)
+	err := gr.db.Select("DISTINCT groups.*").Find(&groups).Error
 	if err != nil {
 		return nil, gr.GenError(gr.NotFoundError, groups)
 	}
@@ -156,23 +157,22 @@ func (gr *GroupRepository) GetGroupsByProfile(db *gorm.DB, data interface {}) (i
 	return *groups, err
 }
 
-func NewGroupRepository() *GroupRepository {
-	repo := &GroupRepository{}
-
+func NewGroupRepository(db *gorm.DB) *GroupRepository {
 	return &GroupRepository{
 		Repository: *core.NewRepository(
 			&models.Group{},
 			[]core.RepositoryMethod{
-				repo.CreateGroup,
-				repo.GetGroup,
-				repo.GetGroups,
-				repo.DeleteGroup,
-				repo.AddGroupMember,
-				repo.GetGroupMembers,
-				repo.DeleteGroupMember,
-				repo.GetGroupMember,
-				repo.GetGroupsByProfile,
+				(&GroupRepository{}).CreateGroup,
+				(&GroupRepository{}).GetGroup,
+				(&GroupRepository{}).GetGroups,
+				(&GroupRepository{}).DeleteGroup,
+				(&GroupRepository{}).AddGroupMember,
+				(&GroupRepository{}).GetGroupMembers,
+				(&GroupRepository{}).DeleteGroupMember,
+				(&GroupRepository{}).GetGroupMember,
+				(&GroupRepository{}).GetGroupsByProfile,
 			},
 		),
+		db: db,
 	}
 }

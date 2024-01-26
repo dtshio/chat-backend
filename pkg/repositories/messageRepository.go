@@ -8,9 +8,10 @@ import (
 
 type MessageRepository struct {
 	core.Repository
+	db *gorm.DB
 }
 
-func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (interface {}, error) {
+func (mr *MessageRepository) CreateMessage(data interface {}) (interface {}, error) {
 	message, ok := data.(*models.Message)
 
     if !ok {
@@ -22,7 +23,7 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 		return nil, mr.GenError(mr.InvalidData, message)
 	}
 
-	err = db.Table("messages").Create(message).Error
+	err = mr.db.Table("messages").Create(message).Error
 	if err != nil {
 		return nil, mr.GenError(mr.CreateError, message)
 	}
@@ -30,7 +31,7 @@ func (mr *MessageRepository) CreateMessage(db *gorm.DB, data interface {}) (inte
 	return *message, nil
 }
 
-func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interface{}, error) {
+func (mr *MessageRepository) GetMessages(data interface{}) (interface{}, error) {
     pagination, ok := data.(*core.Pagination)
 
     if !ok {
@@ -40,10 +41,10 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interfa
     var messages []models.Message
     offset := pagination.PageSize * (pagination.PageNumber)
     
-    db = db.Table("messages").Order("created_at DESC").Offset(offset).Limit(pagination.PageSize)
-    db = db.Where("channel_id = ?", pagination.Key)
+    mr.db = mr.db.Table("messages").Order("created_at DESC").Offset(offset).Limit(pagination.PageSize)
+    mr.db = mr.db.Where("channel_id = ?", pagination.Key)
     
-    err := db.Find(&messages).Error
+    err := mr.db.Find(&messages).Error
     if err != nil {
         return nil, mr.GenError(mr.NotFoundError, messages)
     }
@@ -55,16 +56,15 @@ func (mr *MessageRepository) GetMessages(db *gorm.DB, data interface{}) (interfa
     return messages, err
 }
 
-func NewMessageRepository() *MessageRepository {
-	repo := &MessageRepository{}
-
+func NewMessageRepository(db *gorm.DB) *MessageRepository {
 	return &MessageRepository{
 		Repository: *core.NewRepository(
 			&models.Message{},
 			[]core.RepositoryMethod{
-				repo.CreateMessage,
-				repo.GetMessages,
+				(&MessageRepository{}).CreateMessage,
+				(&MessageRepository{}).GetMessages,
 			},
 		),
+		db: db,
 	}
 }
