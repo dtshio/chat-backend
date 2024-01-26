@@ -252,7 +252,8 @@ func (mc *GroupController) HandleGetGroupsByProfile(w http.ResponseWriter, r *ht
 		return
 	}
 
-	profileID := mc.GetPayload(r)["id"].(string)
+	payload := mc.GetPayload(r)
+	profileID := payload["id"].(string)
 
 	dbRecords, err := mc.service.GetGroupsByProfile(profileID)
 	if err != nil {
