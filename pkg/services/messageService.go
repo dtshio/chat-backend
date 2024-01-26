@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/datsfilipe/pkg/application/redis"
 	"github.com/datsfilipe/pkg/core"
@@ -69,8 +70,11 @@ func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 func (ms *MessageService) GetMessages(data interface{}) (interface{}, error) {
 	paylaod := data.(core.Map)
 
-	page := int(paylaod["page"].(float64))
 	key := paylaod["channel_id"].(string)
+	page, err := strconv.Atoi(paylaod["page"].(string))
+	if err != nil {
+		return nil, ms.GenError(ms.InvalidData, page)
+	}
 
 	if key == "" {
 		return nil, ms.GenError(ms.InvalidData, key)
