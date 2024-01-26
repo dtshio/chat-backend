@@ -7,14 +7,16 @@ import (
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type FriendshipService struct {
 	core.Service
+	log *zap.Logger
+	repo *repositories.FriendshipRepository
+	channelService *ChannelService
 }
 
-func (fs *FriendshipService) CreateFriendshipRequest(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (fs *FriendshipService) CreateFriendshipRequest(data interface{}) (interface{}, error) {
 	payload := data.(core.Map)
 
 	initiatorIDStr := payload["initiator_id"].(string)
@@ -22,32 +24,30 @@ func (fs *FriendshipService) CreateFriendshipRequest(db *gorm.DB, log *zap.Logge
 
 	initiatorID, err := strconv.Atoi(initiatorIDStr)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, fs.GenError(fs.InvalidData, initiatorIDStr)
 	}
 
 	friendID, err := strconv.Atoi(friendIDStr)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, fs.GenError(fs.InvalidData, friendIDStr)
 	}
-
-	repo := repositories.NewFriendshipRepository()
 
 	friendshipRequest := &models.FriendshipRequest{}
 	friendshipRequest.InitiatorID = models.BigInt(initiatorID)
 	friendshipRequest.FriendID = models.BigInt(friendID)
 
-	dbRecord, err := repo.CreateFriendshipRequest(db, friendshipRequest)
+	dbRecord, err := fs.repo.CreateFriendshipRequest(friendshipRequest)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, fs.GenError(fs.CreateError, dbRecord)
 	}
 
 	return dbRecord, nil
 }
 
-func (fs *FriendshipService) CreateFriendship(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (fs *FriendshipService) CreateFriendship(data interface{}) (interface{}, error) {
 	payload := data.(core.Map)
 
 	initiatorIDStr := payload["initiator_id"].(string)
@@ -56,32 +56,28 @@ func (fs *FriendshipService) CreateFriendship(db *gorm.DB, log *zap.Logger, data
 
 	initiatorID, err := strconv.Atoi(initiatorIDStr)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, fs.GenError(fs.InvalidData, nil)
 	}
 
 	friendID, err := strconv.Atoi(friendIDStr)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, fs.GenError(fs.InvalidData, nil)
 	}
 
-	repo := repositories.NewFriendshipRepository()
-
-	_, err = repo.AcceptFriendshipRequest(db, requestID)
+	_, err = fs.repo.AcceptFriendshipRequest(requestID)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
-
-	channelService := NewChannelService()
 
 	channel := &models.Channel{}
 	channel.Type = "DIRECT_MESSAGE"
 
-	channelRecord, err := channelService.CreateChannel(db, log, channel)
+	channelRecord, err := fs.channelService.CreateChannel(channel)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
@@ -90,107 +86,102 @@ func (fs *FriendshipService) CreateFriendship(db *gorm.DB, log *zap.Logger, data
 	friendship.InitiatorID = models.BigInt(initiatorID)
 	friendship.FriendID = models.BigInt(friendID)
 
-	dbRecord, err := repo.CreateFriendship(db, friendship)
+	dbRecord, err := fs.repo.CreateFriendship(friendship)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	return dbRecord, nil
 }
 
-func (fs *FriendshipService) GetFriendshipRequests(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (fs *FriendshipService) GetFriendshipRequests(data interface{}) (interface{}, error) {
 	userID := data.(string)
 
 	if userID == "" {
 		return nil, fs.GenError(fs.InvalidData, nil)
 	}
 
-	repo := repositories.NewFriendshipRepository()
-
-	dbRecords, err := repo.GetFriendshipRequests(db, userID)
+	dbRecords, err := fs.repo.GetFriendshipRequests(userID)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	return dbRecords, nil
 }
 
-func (fs *FriendshipService) GetFriendships(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (fs *FriendshipService) GetFriendships(data interface{}) (interface{}, error) {
 	userID, ok := data.(string)
 
 	if !ok || userID == "" {
 		return nil, fs.GenError(fs.InvalidData, nil)
 	}
 
-	repo := repositories.NewFriendshipRepository()
-
-	dbRecords, err := repo.GetFriendships(db, userID)
+	dbRecords, err := fs.repo.GetFriendships(userID)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	return dbRecords, nil
 }
 
-func (fs *FriendshipService) DeleteFriendshipRequest(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (fs *FriendshipService) DeleteFriendshipRequest(data interface{}) (interface{}, error) {
 	id := data.(string)
 
-	repo := repositories.NewFriendshipRepository()
-
-	_, err := repo.DeleteFriendshipRequest(db, id)
+	_, err := fs.repo.DeleteFriendshipRequest(id)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (fs *FriendshipService) DeleteFriendship(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (fs *FriendshipService) DeleteFriendship(data interface{}) (interface{}, error) {
 	userID := data.(string)
 
-	repo := repositories.NewFriendshipRepository()
-
-	dbRecord, err := repo.GetFriendship(db, userID)
+	dbRecord, err := fs.repo.GetFriendship(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	channelID := strconv.Itoa(int(dbRecord.(models.Friendship).ChannelID))
 
-	_, err = repo.DeleteFriendship(db, dbRecord)
+	_, err = fs.repo.DeleteFriendship(dbRecord)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
-	channelService := NewChannelService()
-
-	_, err = channelService.DeleteChannel(db, log, channelID)
+	_, err = fs.channelService.DeleteChannel(channelID)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func NewFriendshipService() *FriendshipService {
-	service := &FriendshipService{}
-
+func NewFriendshipService(
+	log *zap.Logger,
+	repo *repositories.FriendshipRepository,
+	channelService *ChannelService,
+) *FriendshipService {
 	return &FriendshipService{
 		Service: *core.NewService(
-			[]core.ServiceMethod{
-				service.CreateFriendship,
-				service.GetFriendships,
-				service.DeleteFriendship,
-				service.CreateFriendshipRequest,
-				service.GetFriendshipRequests,
-				service.DeleteFriendshipRequest,
-			},
+            []core.ServiceMethod{
+                (&FriendshipService{}).CreateFriendship,
+                (&FriendshipService{}).GetFriendships,
+                (&FriendshipService{}).DeleteFriendship,
+                (&FriendshipService{}).CreateFriendshipRequest,
+                (&FriendshipService{}).GetFriendshipRequests,
+                (&FriendshipService{}).DeleteFriendshipRequest,
+            },
 		),
+		log:            log,
+		repo:           repo,
+		channelService: channelService,
 	}
 }

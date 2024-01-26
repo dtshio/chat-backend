@@ -10,34 +10,32 @@ import (
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type MessageService struct {
 	core.Service
+	log *zap.Logger
+	repo *repositories.MessageRepository
+	service *UserService
 }
 
-func (ms *MessageService) CreateMessage(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 	message := data.(*models.Message)
 	if message == nil {
 		return nil, ms.GenError(ms.InvalidData, message)
 	}
 
-	repo := repositories.NewMessageRepository()
-
-	messageRecord, err := repo.CreateMessage(db, message)
+	messageRecord, err := ms.repo.CreateMessage(message)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
-	userService := NewUserService()
-
 	authorIDStr := fmt.Sprint(message.AuthorID)
 
-	authorRecords, err := userService.GetProfile(db, log, authorIDStr)
+	authorRecords, err := ms.service.GetProfile(authorIDStr)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
@@ -53,7 +51,7 @@ func (ms *MessageService) CreateMessage(db *gorm.DB, log *zap.Logger, data inter
 	status := redis.Publish(ctx, "channel:" + fmt.Sprint(messageRecord.(models.Message).ChannelID), redisMessage)
 
 	if status.Err() != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, ms.GenError(ms.CreateError, status.Err())
 	}
 
@@ -68,7 +66,7 @@ func (ms *MessageService) CreateMessage(db *gorm.DB, log *zap.Logger, data inter
 	return messageObject, nil
 }
 
-func (ms *MessageService) GetMessages(db *gorm.DB, log *zap.Logger, data interface{}) (interface{}, error) {
+func (ms *MessageService) GetMessages(data interface{}) (interface{}, error) {
 	paylaod := data.(core.Map)
 
 	page := int(paylaod["page"].(float64))
@@ -82,27 +80,23 @@ func (ms *MessageService) GetMessages(db *gorm.DB, log *zap.Logger, data interfa
 		return nil, ms.GenError(ms.InvalidData, page)
 	}
 
-	pagination := core.NewPagination(db, 20, page - 1)
+	pagination := core.NewPagination(20, page - 1)
 	pagination.Key = key
 
-	repo := repositories.NewMessageRepository()
-
-	messageRecords, err := repo.GetMessages(db, pagination)
+	messageRecords, err := ms.repo.GetMessages(pagination)
 	if err != nil {
-		log.Warn("Warn", zap.Any("Warn", err.Error()))
+		ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, err
 	}
 
 	authorRecords := make([]models.Profile, 0)
 
-	userService := NewUserService()
-
 	for _, message := range messageRecords.([]models.Message) {
 		authorIDStr := fmt.Sprint(message.AuthorID)
 
-		authorRecord, err := userService.GetProfile(db, log, authorIDStr)
+		authorRecord, err := ms.service.GetProfile(authorIDStr)
 		if err != nil {
-			log.Warn("Warn", zap.Any("Warn", err.Error()))
+			ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
 			return nil, err
 		}
 
@@ -130,15 +124,10 @@ func (ms *MessageService) GetMessages(db *gorm.DB, log *zap.Logger, data interfa
 	return messages, nil
 }
 
-func NewMessageService() *MessageService {
-	service := &MessageService{}
-
+func NewMessageService(log *zap.Logger, repo *repositories.MessageRepository, userService *UserService) *MessageService {
 	return &MessageService{
-		Service: *core.NewService(
-			[]core.ServiceMethod{
-				service.CreateMessage,
-				service.GetMessages,
-			},
-		),
+		log: log,
+		repo: repo,
+		service: userService,
 	}
 }
