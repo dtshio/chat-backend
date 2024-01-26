@@ -3,25 +3,12 @@ package core
 import (
 	"encoding/json"
 	"net/http"
-
-	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type ControllerMethod http.HandlerFunc
 
 type Controller struct {
 	methods []ControllerMethod
-	db *gorm.DB
-	log *zap.Logger
-}
-
-func (c *Controller) SetDB(db *gorm.DB) {
-	c.db = db
-}
-
-func (c *Controller) SetLogger(log *zap.Logger) {
-	c.log = log
 }
 
 func (c *Controller) GetPayload(r *http.Request) Map {
