@@ -1,11 +1,6 @@
 package core
 
-import (
-	"go.uber.org/zap"
-	"gorm.io/gorm"
-)
-
-type ServiceMethod func(*gorm.DB, *zap.Logger, interface{}) (interface{}, error)
+type ServiceMethod func(interface{}) (interface{}, error)
 
 type Service struct {
 	methods []ServiceMethod
@@ -21,14 +16,14 @@ type Service struct {
 
 func NewService(methods []ServiceMethod) *Service {
 	return &Service{
-		methods: methods,
+        methods: methods,
 
-		GenError: GenError,
-		InvalidData: InvalidData,
-		CreateError: CreateError,
-		NotFoundError: NotFoundError,
-		DuplicateError: DuplicateError,
-		UpdateError: UpdateError,
-		DeleteError: DeleteError,
-	}
+        GenError:      GenError,
+        InvalidData:   InvalidData,
+        CreateError:   CreateError,
+        NotFoundError: NotFoundError,
+        DuplicateError: DuplicateError,
+        UpdateError:   UpdateError,
+        DeleteError:   DeleteError,
+    }
 }
