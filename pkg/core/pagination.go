@@ -11,9 +11,8 @@ type Pagination struct {
 	Key string
 }
 
-func NewPagination(db *gorm.DB, pageSize, pageNumber int) *Pagination {
+func NewPagination(pageSize, pageNumber int) *Pagination {
 	return &Pagination{
-		DB: db,
 		PageSize: pageSize,
 		PageNumber: pageNumber,
 	}
