@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
@@ -11,14 +12,26 @@ type Controller struct {
 }
 
 func (c *Controller) GetPayload(r *http.Request) Map {
-	payload := make(Map)
+    payload := make(Map)
 
-	r.ParseForm()
-	for key, value := range r.Form {
-		payload[key] = value[0]
-	}
+    switch r.Method {
+    case "POST", "PUT":
+        decoder := json.NewDecoder(r.Body)
+        err := decoder.Decode(&payload)
 
-	return payload
+        if err != nil {
+            return nil
+        }
+    case "GET", "DELETE":
+        r.ParseForm()
+        for key, values := range r.Form {
+            if len(values) > 0 {
+                payload[key] = values[0]
+            }
+        }
+    }
+
+    return payload
 }
 
 func generateMessage(statusCode int) string {
