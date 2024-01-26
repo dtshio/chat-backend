@@ -33,6 +33,8 @@ func ServeMux(
 	Route(mux, "/signin", userController.HandleSignIn, CorsMiddleware)
 	Route(mux, "/user/delete", userController.HandleDeleteUser, CorsMiddleware)
 
+	Route(mux, "/profile", userController.HandleCreateProfile, CorsMiddleware)
+
 	Route(mux, "/message", messageController.HandleNewMessage, CorsMiddleware, AuthMiddleware)
 	Route(mux, "/message/history", messageController.HandleGetMessages, CorsMiddleware, AuthMiddleware)
 

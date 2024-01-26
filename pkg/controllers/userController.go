@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/datsfilipe/pkg/application/auth"
 	"github.com/datsfilipe/pkg/core"
@@ -139,6 +141,42 @@ func (uc *UserController) HandleDeleteUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	uc.Response(w, http.StatusOK, nil)
+}
+
+func (uc *UserController) HandleCreateProfile(w http.ResponseWriter, r *http.Request) {
+	if uc.IsAllowedMethod(r, []string{"POST"}) == false {
+		uc.Response(w, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
+	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
+	userIDStr := strings.Split(token, ".")[0]
+
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	if err != nil {
+		uc.Response(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	payload := uc.GetPayload(r)
+
+	profile := &models.Profile{}
+	profile.UserID = models.BigInt(userID)
+	profile.Username = payload["username"].(string)
+
+	dbRecord, err := uc.service.CreateProfile(profile)
+	if err != nil {
+		uc.Response(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	res, err := json.Marshal(dbRecord)
+	if err != nil {
+		uc.Response(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	uc.Response(w, http.StatusCreated, res)
 }
 
 func NewUserController(service *services.UserService) *UserController {
