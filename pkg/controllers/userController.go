@@ -120,6 +120,27 @@ func (uc *UserController) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	uc.Response(w, http.StatusOK, res)
 }
 
+func (uc *UserController) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	if uc.IsAllowedMethod(r, []string{"DELETE"}) == false {
+		uc.Response(w, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
+	userID := uc.GetPayload(r)["id"].(string)
+
+	if userID == "" {
+		uc.Response(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	if _, err := uc.service.DeleteUser(userID); err != nil {
+		uc.Response(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	uc.Response(w, http.StatusOK, nil)
+}
+
 func NewUserController(service *services.UserService) *UserController {
 	return &UserController{
 		service: service,

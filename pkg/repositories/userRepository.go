@@ -31,6 +31,17 @@ func (ur *UserRepository) CreateUser(data interface {}) (interface {}, error) {
 	return *user, nil
 }
 
+func (ur *UserRepository) DeleteUser(data interface {}) (interface {}, error) {
+	userID := data.(string)
+
+	err := ur.db.Table("users").Delete(&models.User{}, userID).Error
+	if err != nil {
+		return nil, ur.GenError(ur.DeleteError, userID)
+	}
+
+	return nil, nil
+}
+
 func (ur *UserRepository) CreateProfile(data interface {}) (interface {}, error) {
 	profile, ok := data.(*models.Profile)
 

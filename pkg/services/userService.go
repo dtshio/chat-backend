@@ -38,6 +38,22 @@ func (us *UserService) CreateUser(data interface{}) (interface{}, error) {
 	return dbRecord, nil
 }
 
+func (us *UserService) DeleteUser(data interface{}) (interface{}, error) {
+	userID, ok := data.(string)
+
+	if !ok || userID == "" {
+		return nil, us.GenError(us.InvalidData, nil)
+	}
+
+	_, err := us.repo.DeleteUser(userID)
+	if err != nil {
+		us.log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 	profile := data.(*models.Profile)
 
