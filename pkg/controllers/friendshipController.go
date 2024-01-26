@@ -131,14 +131,12 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 }
 
 func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r *http.Request) {
-	if fc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if fc.IsAllowedMethod(r, []string{"DELETE"}) == false {
 		fc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	payload := fc.GetPayload(r)
-
-	friendshipID := payload["id"].(string)
+	friendshipID := fc.GetPayload(r)["id"].(string)
 
 	if friendshipID == "" {
 		fc.Response(w, http.StatusBadRequest, nil)
@@ -155,16 +153,15 @@ func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r 
 }
 
 func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWriter, r *http.Request) {
-	if fc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if fc.IsAllowedMethod(r, []string{"DELETE"}) == false {
 		fc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	payload := fc.GetPayload(r)
-	requestID := payload["id"].(string)
+	requestID := fc.GetPayload(r)["id"].(string)
 
 	if requestID == "" {
-		fc.Response(w, http.StatusBadRequest, payload)
+		fc.Response(w, http.StatusBadRequest, requestID)
 		return
 	}
 

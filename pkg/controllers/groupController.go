@@ -99,21 +99,14 @@ func (mc *GroupController) HandleGetGroups(w http.ResponseWriter, r *http.Reques
 }
 
 func (mc *GroupController) HandleDeleteGroup(w http.ResponseWriter, r *http.Request) {
-	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if mc.IsAllowedMethod(r, []string{"DELETE"}) == false {
 		mc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	payload := mc.GetPayload(r)
+	id := mc.GetPayload(r)["id"].(string)
 
-	if payload == nil {
-		mc.Response(w, http.StatusBadRequest, nil)
-		return
-	}
-
-	id, ok := payload["id"].(string)
-
-	if !ok || id == "" {
+	if id == "" {
 		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
@@ -204,21 +197,14 @@ func (mc *GroupController) HandleGetMembers(w http.ResponseWriter, r *http.Reque
 }
 
 func (mc *GroupController) HandleRemoveMember(w http.ResponseWriter, r *http.Request) {
-	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if mc.IsAllowedMethod(r, []string{"DELETE"}) == false {
 		mc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	payload := mc.GetPayload(r)
+	id := mc.GetPayload(r)["id"].(string)
 
-	if payload == nil {
-		mc.Response(w, http.StatusBadRequest, nil)
-		return
-	}
-
-	id, ok := payload["id"].(string)
-
-	if !ok || id == "" {
+	if id == "" {
 		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
@@ -233,21 +219,14 @@ func (mc *GroupController) HandleRemoveMember(w http.ResponseWriter, r *http.Req
 }
 
 func (mc *GroupController) HandleGetMember(w http.ResponseWriter, r *http.Request) {
-	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if mc.IsAllowedMethod(r, []string{"GET"}) == false {
 		mc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	payload := mc.GetPayload(r)
+	id := mc.GetPayload(r)["id"].(string)
 
-	if payload == nil {
-		mc.Response(w, http.StatusBadRequest, nil)
-		return
-	}
-
-	id, ok := payload["id"].(string)
-
-	if !ok || id == "" {
+	if id == "" {
 		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
@@ -268,19 +247,12 @@ func (mc *GroupController) HandleGetMember(w http.ResponseWriter, r *http.Reques
 }
 
 func (mc *GroupController) HandleGetGroupsByProfile(w http.ResponseWriter, r *http.Request) {
-	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if mc.IsAllowedMethod(r, []string{"GET"}) == false {
 		mc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
 
-	payload := mc.GetPayload(r)
-	
-	if payload == nil {
-		mc.Response(w, http.StatusBadRequest, nil)
-		return
-	}
-
-	profileID := payload["profile_id"].(string)
+	profileID := mc.GetPayload(r)["id"].(string)
 
 	dbRecords, err := mc.service.GetGroupsByProfile(profileID)
 	if err != nil {

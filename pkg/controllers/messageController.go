@@ -57,7 +57,7 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 }
 
 func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Request) {
-	if mc.IsAllowedMethod(r, []string{"POST"}) == false {
+	if mc.IsAllowedMethod(r, []string{"GET"}) == false {
 		mc.Response(w, http.StatusMethodNotAllowed, nil)
 		return
 	}
@@ -69,7 +69,7 @@ func (mc *MessageController) HandleGetMessages(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if payload["channel_id"] == nil || payload["page"] == nil {
+	if payload["channel_id"] == "" || payload["page"] == "" {
 		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}
