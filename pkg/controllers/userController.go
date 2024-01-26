@@ -143,6 +143,37 @@ func (uc *UserController) HandleDeleteUser(w http.ResponseWriter, r *http.Reques
 	uc.Response(w, http.StatusOK, nil)
 }
 
+func (uc *UserController) HandleVerifyUserPassword(w http.ResponseWriter, r *http.Request) {
+	if uc.IsAllowedMethod(r, []string{"POST"}) == false {
+		uc.Response(w, http.StatusMethodNotAllowed, nil)
+		return
+	}
+
+	payload := uc.GetPayload(r)
+	password := payload["password"].(string)
+
+	if password == "" {
+		uc.Response(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	token := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
+	userID := strings.Split(token, ".")[0]
+
+	userRecord, err := uc.service.FindByID(userID)
+	if userRecord == nil {
+		uc.Response(w, http.StatusNotFound, err)
+		return
+	}
+
+	if (&models.User{}).VerifyPassword(password, userRecord.(models.User).Password) == false {
+		uc.Response(w, http.StatusUnauthorized, nil)
+		return
+	}
+
+	uc.Response(w, http.StatusOK, nil)
+}
+
 func (uc *UserController) HandleCreateProfile(w http.ResponseWriter, r *http.Request) {
 	if uc.IsAllowedMethod(r, []string{"POST"}) == false {
 		uc.Response(w, http.StatusMethodNotAllowed, nil)

@@ -31,7 +31,9 @@ func ServeMux(
 
 	Route(mux, "/signup", userController.HandleSignUp, CorsMiddleware)
 	Route(mux, "/signin", userController.HandleSignIn, CorsMiddleware)
+
 	Route(mux, "/user/delete", userController.HandleDeleteUser, CorsMiddleware)
+	Route(mux, "/user/password", userController.HandleVerifyUserPassword, CorsMiddleware)
 
 	Route(mux, "/profile", userController.HandleCreateProfile, CorsMiddleware)
 

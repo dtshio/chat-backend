@@ -75,6 +75,19 @@ func (ur *UserRepository) FindByEmail(data interface {}) (interface {}, error) {
 	return user, nil
 }
 
+func (ur *UserRepository) FindByID(data interface {}) (interface {}, error) {
+	id := data.(string)
+
+	var user models.User
+
+	err := ur.db.Table("users").Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (ur *UserRepository) FindByUsername(data interface {}) (interface {}, error) {
 	username := data.(string)
 

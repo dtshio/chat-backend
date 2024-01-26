@@ -90,6 +90,17 @@ func (us *UserService) FindByEmail(data interface{}) (interface{}, error) {
 	return dbRecord, nil
 }
 
+func (us *UserService) FindByID(data interface{}) (interface{}, error) {
+	id := data.(string)
+
+	dbRecord, err := us.repo.FindByID(id)
+	if err != nil {
+		us.log.Warn("Warn", zap.Any("Warn", err.Error()))
+	}
+
+	return dbRecord, nil
+}
+
 func (us *UserService) GetProfiles(data interface{}) (interface{}, error) {
 	userID, ok := data.(string)
 
