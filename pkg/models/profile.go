@@ -25,3 +25,7 @@ func (p *Profile) BeforeCreateRecord(id BigInt) error {
 
 	return nil
 }
+
+func (Profile) TableName() string {
+	return "user_profiles"
+}
