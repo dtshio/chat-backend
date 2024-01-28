@@ -91,6 +91,11 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 
 	dbRecords, err := fc.service.GetFriendships(userID)
 	if err != nil {
+		if strings.Contains(err.Error(), "Entry not found") {
+			fc.Response(w, http.StatusOK, "[]")
+			return
+		}
+
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -125,6 +130,10 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 	var res string
 	for _, friendshipRequest := range dbRecords.([]models.FriendshipRequest) {
 		res += fmt.Sprint("{\"id\": \"", friendshipRequest.ID, "\", \"initiator_id\": \"", friendshipRequest.InitiatorID, "\", \"friend_id\": \"", friendshipRequest.FriendID, "\"},")
+		if strings.Contains(err.Error(), "Entry not found") {
+			fc.Response(w, http.StatusOK, "[]")
+			return
+		}
 	}
 
 	fc.Response(w, http.StatusOK, fmt.Sprint("[", res[:len(res) - 1], "]"))
