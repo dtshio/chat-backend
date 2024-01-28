@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/datsfilipe/pkg/application/database"
+	"github.com/datsfilipe/pkg/application/redis"
 	"github.com/datsfilipe/pkg/application/server"
 	"github.com/datsfilipe/pkg/controllers"
 	"github.com/datsfilipe/pkg/repositories"
@@ -36,6 +37,7 @@ func main() {
 			repositories.NewGroupRepository,
 			repositories.NewChannelRepository,
 			database.Open,
+			redis.Open,
 			zap.NewDevelopment,
 		),
 		fx.Invoke(func(

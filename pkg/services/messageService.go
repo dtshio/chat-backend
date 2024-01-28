@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/datsfilipe/pkg/application/redis"
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
 	"go.uber.org/zap"
+	"github.com/redis/go-redis/v9"
 )
 
 type MessageService struct {
@@ -18,6 +18,7 @@ type MessageService struct {
 	log *zap.Logger
 	repo *repositories.MessageRepository
 	service *UserService
+	redis *redis.Client
 }
 
 func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
@@ -47,9 +48,8 @@ func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 	author := authorRecords.([]models.Profile)[0]
 
 	ctx := context.Background()
-	redis := redis.Open()
 	redisMessage, _ := json.Marshal(map[string]any{"content": messageRecord.(models.Message).Content, "username": author.Username})
-	status := redis.Publish(ctx, "channel:" + fmt.Sprint(messageRecord.(models.Message).ChannelID), redisMessage)
+	status := ms.redis.Publish(ctx, "channel:" + fmt.Sprint(messageRecord.(models.Message).ChannelID), redisMessage)
 
 	if status.Err() != nil {
 		ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
@@ -128,10 +128,11 @@ func (ms *MessageService) GetMessages(data interface{}) (interface{}, error) {
 	return messages, nil
 }
 
-func NewMessageService(log *zap.Logger, repo *repositories.MessageRepository, userService *UserService) *MessageService {
+func NewMessageService(log *zap.Logger, repo *repositories.MessageRepository, userService *UserService, redis *redis.Client) *MessageService {
 	return &MessageService{
 		log: log,
 		repo: repo,
 		service: userService,
+		redis: redis,
 	}
 }
