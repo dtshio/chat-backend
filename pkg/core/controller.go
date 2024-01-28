@@ -74,6 +74,12 @@ func (c *Controller) Response(w http.ResponseWriter, statusCode int, data interf
 	case []byte:
 		w.WriteHeader(statusCode)
 		w.Write(v)
+	case Map:
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(v)
+	case []Map:
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(v)
 	default:
 		http.Error(w, "Unsupported data type", http.StatusInternalServerError)
 	}
