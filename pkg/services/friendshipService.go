@@ -82,7 +82,7 @@ func (fs *FriendshipService) CreateFriendship(data interface{}) (interface{}, er
 	}
 
 	friendship := &models.Friendship{}
-	friendship.ChannelID = channelRecord.(models.Channel).ID
+	friendship.DmChannelID = channelRecord.(models.Channel).ID
 	friendship.InitiatorID = models.BigInt(initiatorID)
 	friendship.FriendID = models.BigInt(friendID)
 
@@ -147,7 +147,7 @@ func (fs *FriendshipService) DeleteFriendship(data interface{}) (interface{}, er
 		return nil, err
 	}
 
-	channelID := strconv.Itoa(int(dbRecord.(models.Friendship).ChannelID))
+	channelID := strconv.Itoa(int(dbRecord.(models.Friendship).DmChannelID))
 
 	_, err = fs.repo.DeleteFriendship(dbRecord)
 	if err != nil {

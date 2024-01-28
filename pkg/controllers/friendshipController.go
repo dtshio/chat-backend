@@ -37,7 +37,7 @@ func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *ht
 		return
 	}
 
-	res := fmt.Sprint("{\"id\": \"", dbRecord.(models.Friendship).ID, ", \"channel_id\": \"", dbRecord.(models.Friendship).ChannelID, "\"}")
+	res := fmt.Sprint("{\"id\": \"", dbRecord.(models.Friendship).ID, ", \"channel_id\": \"", dbRecord.(models.Friendship).DmChannelID, "\"}")
 
 	fc.Response(w, http.StatusCreated, res)
 }

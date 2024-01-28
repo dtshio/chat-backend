@@ -19,7 +19,7 @@ type FriendshipRequest struct {
 
 type Friendship struct {
 	FriendshipBase
-	ChannelID BigInt `json:"channel_id" gorm:"not null REFERENCES channels(id)"`
+	DmChannelID BigInt `json:"dm_channel_id" gorm:"not null REFERENCES channels(id)"`
 }
 
 func (fr *FriendshipRequest) BeforeCreateRecord() error {
