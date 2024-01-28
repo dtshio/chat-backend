@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
@@ -257,6 +258,11 @@ func (mc *GroupController) HandleGetGroupsByProfile(w http.ResponseWriter, r *ht
 
 	dbRecords, err := mc.service.GetGroupsByProfile(profileID)
 	if err != nil {
+		if strings.Contains(err.Error(), "Entry not found") {
+			mc.Response(w, http.StatusOK, "[]")
+			return
+		}
+
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
