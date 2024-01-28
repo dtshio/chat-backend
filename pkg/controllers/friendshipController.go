@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/datsfilipe/pkg/core"
@@ -13,6 +14,7 @@ import (
 type FriendshipController struct {
 	core.Controller
 	service *services.FriendshipService
+	userService *services.UserService
 }
 
 func (fc *FriendshipController) HandleNewFriendship(w http.ResponseWriter, r *http.Request) {
@@ -121,22 +123,76 @@ func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWrite
 
 	userID := strings.Split(strings.Split(r.Header.Get("Authorization"), "Bearer ")[1], ".")[0]
 
-	dbRecords, err := fc.service.GetFriendshipRequests(userID)
+	userIDInt, err := strconv.Atoi(userID)
 	if err != nil {
 		fc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	var res string
-	for _, friendshipRequest := range dbRecords.([]models.FriendshipRequest) {
-		res += fmt.Sprint("{\"id\": \"", friendshipRequest.ID, "\", \"initiator_id\": \"", friendshipRequest.InitiatorID, "\", \"friend_id\": \"", friendshipRequest.FriendID, "\"},")
+	friendshipRequestRecords, err := fc.service.GetFriendshipRequests(userID)
+	if err != nil {
 		if strings.Contains(err.Error(), "Entry not found") {
 			fc.Response(w, http.StatusOK, "[]")
 			return
 		}
+
+		fc.Response(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	fc.Response(w, http.StatusOK, fmt.Sprint("[", res[:len(res) - 1], "]"))
+	var friendProfiles []models.Profile
+	var userIDs []models.BigInt
+	for _, friendshipRequest := range friendshipRequestRecords.([]models.FriendshipRequest) {
+		if friendshipRequest.InitiatorID == models.BigInt(userIDInt) {
+			userIDs = append(userIDs, friendshipRequest.FriendID)
+		} else {
+			userIDs = append(userIDs, friendshipRequest.InitiatorID)
+		}
+	}
+
+	var userIDsStr []string
+	for _, userID := range userIDs {
+		userIDsStr = append(userIDsStr, fmt.Sprint(userID))
+	}
+
+	if profilesRecords, err := fc.userService.GetDefaultProfiles(userIDsStr); err != nil {
+		fc.Response(w, http.StatusInternalServerError, err)
+		return
+	} else {
+		friendProfiles = profilesRecords.([]models.Profile)
+	}
+
+	var res []core.Map
+
+	for _, friendshipRequest := range friendshipRequestRecords.([]models.FriendshipRequest) {
+		var profile models.Profile
+
+		for _, friendProfile := range friendProfiles {
+			if friendshipRequest.InitiatorID == friendProfile.UserID {
+				profile = friendProfile
+				break
+			}
+		}
+
+		if profile.ID == 0 {
+			break
+		}
+
+		res = append(res, core.Map{
+			"id": profile.ID,
+			"request_id": friendshipRequest.ID,
+			"username": profile.Username,
+			"initiator_id": friendshipRequest.InitiatorID,
+			"friend_id": friendshipRequest.FriendID,
+		})
+	}
+
+	if len(res) == 0 {
+		fc.Response(w, http.StatusOK, "[]")
+		return
+	}
+
+	fc.Response(w, http.StatusOK, res)
 }
 
 func (fc *FriendshipController) HandleDeleteFriendship(w http.ResponseWriter, r *http.Request) {
@@ -183,8 +239,12 @@ func (fc *FriendshipController) HandleDeleteFriendshipRequest(w http.ResponseWri
 	fc.Response(w, http.StatusOK, "Deleted")
 }
 
-func NewFriendshipController(service *services.FriendshipService) *FriendshipController {
+func NewFriendshipController(
+	service *services.FriendshipService,
+	userService *services.UserService,
+) *FriendshipController {
 	return &FriendshipController{
 		service: service,
+		userService: userService,
 	}
 }

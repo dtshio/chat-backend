@@ -133,6 +133,22 @@ func (us *UserService) GetProfile(data interface{}) (interface{}, error) {
 	return dbRecord, nil
 }
 
+func (us *UserService) GetDefaultProfiles(data interface{}) (interface{}, error) {
+	userIDs, ok := data.([]string)
+
+	if !ok || len(userIDs) == 0 {
+		return nil, us.GenError(us.InvalidData, nil)
+	}
+
+	dbRecord, err := us.repo.GetDefaultProfiles(userIDs)
+	if err != nil {
+		us.log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
+}
+
 func NewUserService(log *zap.Logger, repo *repositories.UserRepository) *UserService {
 	return &UserService{
 		log: log,

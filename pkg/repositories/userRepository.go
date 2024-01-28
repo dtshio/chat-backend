@@ -129,6 +129,27 @@ func (ur *UserRepository) GetProfile(data interface {}) (interface {}, error) {
 	return profile, err
 }
 
+func (ur *UserRepository) GetDefaultProfiles(data interface{}) (interface{}, error) {
+    userIDs := data.([]string)
+
+    var users []models.User
+    if err := ur.db.Where("id IN (?)", userIDs).Find(&users).Error; err != nil {
+        return nil, err
+    }
+
+    var profiles []models.Profile
+	for _, user := range users {
+        var profile models.Profile
+        if err := ur.db.Where("id = ?", user.DefaultProfileID).First(&profile).Error; err != nil {
+            return nil, err
+        }
+
+        profiles = append(profiles, profile)
+    }
+
+    return profiles, nil
+}
+
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
 		Repository: *core.NewRepository(
