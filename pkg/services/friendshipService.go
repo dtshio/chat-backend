@@ -1,11 +1,14 @@
 package services
 
 import (
+	"context"
+	"encoding/json"
 	"strconv"
 
 	"github.com/datsfilipe/pkg/core"
 	"github.com/datsfilipe/pkg/models"
 	"github.com/datsfilipe/pkg/repositories"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -14,6 +17,7 @@ type FriendshipService struct {
 	log *zap.Logger
 	repo *repositories.FriendshipRepository
 	channelService *ChannelService
+	redis *redis.Client 
 }
 
 func (fs *FriendshipService) CreateFriendshipRequest(data interface{}) (interface{}, error) {
@@ -40,6 +44,27 @@ func (fs *FriendshipService) CreateFriendshipRequest(data interface{}) (interfac
 
 	dbRecord, err := fs.repo.CreateFriendshipRequest(friendshipRequest)
 	if err != nil {
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, fs.GenError(fs.CreateError, dbRecord)
+	}
+
+	redisMessage, err := json.Marshal(map[string]any{
+		"id": "friend.request",
+		"meta": map[string]any{
+			"id": dbRecord.(models.FriendshipRequest).ID,
+			"initiator_id": initiatorIDStr,
+			"friend_id": friendIDStr,
+		},
+	})
+
+	if err != nil {
+		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, fs.GenError(fs.CreateError, dbRecord)
+	}
+
+	ctx := context.Background()
+
+	if status := fs.redis.Publish(ctx, "notifications:" + friendIDStr, redisMessage); status.Err() != nil {
 		fs.log.Warn("Warn", zap.Any("Warn", err.Error()))
 		return nil, fs.GenError(fs.CreateError, dbRecord)
 	}
@@ -168,6 +193,7 @@ func NewFriendshipService(
 	log *zap.Logger,
 	repo *repositories.FriendshipRepository,
 	channelService *ChannelService,
+	redis *redis.Client,
 ) *FriendshipService {
 	return &FriendshipService{
 		Service: *core.NewService(
@@ -183,5 +209,6 @@ func NewFriendshipService(
 		log:            log,
 		repo:           repo,
 		channelService: channelService,
+		redis:          redis,
 	}
 }
