@@ -109,7 +109,17 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 
 	var res string
 	for _, friendship := range dbRecords.([]models.Friendship) {
-		res += fmt.Sprint("{\"id\": \"", friendship.ID, "\", \"initiator_id\": \"", friendship.InitiatorID, "\", \"friend_id\": \"", friendship.FriendID, "\"},")
+		res += fmt.Sprint(
+			"{\"id\": \"",
+			friendship.ID,
+			"\", \"initiator_id\": \"",
+			friendship.InitiatorID,
+			"\", \"friend_id\": \"",
+			friendship.FriendID,
+			"\", \"channel_id\": \"",
+			friendship.DmChannelID,
+			"\"},",
+		)
 	}
 
 	fc.Response(w, http.StatusOK, fmt.Sprint("[", res[:len(res) - 1], "]"))
