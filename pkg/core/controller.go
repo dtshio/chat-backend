@@ -95,8 +95,6 @@ func (c *Controller) IsAllowedMethod(r *http.Request, methods []string) bool {
 	return false
 }
 
-func NewController(methods []ControllerMethod) *Controller {
-	return &Controller{
-		methods: methods,
-	}
+func NewController() *Controller {
+	return &Controller{}
 }

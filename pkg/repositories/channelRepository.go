@@ -59,14 +59,7 @@ func (cr *ChannelRepository) DeleteChannel(data interface {}) (interface {}, err
 
 func NewChannelRepository(db *gorm.DB) *ChannelRepository {
 	return &ChannelRepository{
-		Repository: *core.NewRepository(
-			&models.Channel{},
-			[]core.RepositoryMethod{
-				(&ChannelRepository{}).CreateChannel,
-				(&ChannelRepository{}).GetChannels,
-				(&ChannelRepository{}).DeleteChannel,
-			},
-		),
+		Repository: *core.NewRepository(),
 		db: db,
 	}
 }

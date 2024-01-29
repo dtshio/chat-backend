@@ -159,20 +159,7 @@ func (gr *GroupRepository) GetGroupsByProfile(data interface {}) (interface {}, 
 
 func NewGroupRepository(db *gorm.DB) *GroupRepository {
 	return &GroupRepository{
-		Repository: *core.NewRepository(
-			&models.Group{},
-			[]core.RepositoryMethod{
-				(&GroupRepository{}).CreateGroup,
-				(&GroupRepository{}).GetGroup,
-				(&GroupRepository{}).GetGroups,
-				(&GroupRepository{}).DeleteGroup,
-				(&GroupRepository{}).AddGroupMember,
-				(&GroupRepository{}).GetGroupMembers,
-				(&GroupRepository{}).DeleteGroupMember,
-				(&GroupRepository{}).GetGroupMember,
-				(&GroupRepository{}).GetGroupsByProfile,
-			},
-		),
+		Repository: *core.NewRepository(),
 		db: db,
 	}
 }

@@ -58,13 +58,7 @@ func (mr *MessageRepository) GetMessages(data interface{}) (interface{}, error) 
 
 func NewMessageRepository(db *gorm.DB) *MessageRepository {
 	return &MessageRepository{
-		Repository: *core.NewRepository(
-			&models.Message{},
-			[]core.RepositoryMethod{
-				(&MessageRepository{}).CreateMessage,
-				(&MessageRepository{}).GetMessages,
-			},
-		),
+		Repository: *core.NewRepository(),
 		db: db,
 	}
 }

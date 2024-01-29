@@ -173,17 +173,7 @@ func (fr *FriendshipRepository) AcceptFriendshipRequest(data interface {}) (inte
 
 func NewFriendshipRepository(db *gorm.DB) *FriendshipRepository {
 	return &FriendshipRepository{
-		Repository: *core.NewRepository(
-			&models.Friendship{},
-			[]core.RepositoryMethod{
-				(&FriendshipRepository{}).CreateFriendship,
-				(&FriendshipRepository{}).GetFriendships,
-				(&FriendshipRepository{}).CreateFriendshipRequest,
-				(&FriendshipRepository{}).AcceptFriendshipRequest,
-				(&FriendshipRepository{}).GetFriendshipRequests,
-				(&FriendshipRepository{}).GetFriendshipRequest,
-			},
-		),
+		Repository: *core.NewRepository(),
 		db: db,
 	}
 }

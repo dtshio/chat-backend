@@ -15,11 +15,8 @@ type Repository struct {
 	DeleteError string
 }
 
-func NewRepository(model interface{}, methods []RepositoryMethod) *Repository {
+func NewRepository() *Repository {
 	return &Repository{
-		target: model,
-		methods: methods,
-
 		GenError: GenError,
 		InvalidData: InvalidData,
 		CreateError: CreateError,

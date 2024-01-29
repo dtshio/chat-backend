@@ -152,16 +152,7 @@ func (ur *UserRepository) GetDefaultProfiles(data interface{}) (interface{}, err
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
-		Repository: *core.NewRepository(
-			&models.User{},
-			[]core.RepositoryMethod{
-				(&UserRepository{}).CreateUser,
-				(&UserRepository{}).CreateProfile,
-				(&UserRepository{}).FindByEmail,
-				(&UserRepository{}).FindByUsername,
-				(&UserRepository{}).GetProfiles,
-			},
-		),
+		Repository: *core.NewRepository(),
 		db: db,
 	}
 }
