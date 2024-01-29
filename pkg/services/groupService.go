@@ -39,6 +39,18 @@ func (gs *GroupService) CreateGroup(data interface{}) (interface{}, error) {
 	return dbRecord, nil
 }
 
+func (gs *GroupService) GetGroup(data interface{}) (interface{}, error) {
+	id := data.(string)
+
+	dbRecord, err := gs.repo.GetGroup(id)
+	if err != nil {
+		gs.log.Warn("Warn", zap.Any("Warn", err.Error()))
+		return nil, err
+	}
+
+	return dbRecord, nil
+}
+
 func (gs *GroupService) GetGroups(data interface{}) (interface{}, error) {
 	groups := data.(*[]models.Group)
 
