@@ -58,6 +58,7 @@ func (cs *ChannelService) DeleteChannel(data interface{}) (interface{}, error) {
 
 func NewChannelService(log *zap.Logger, repo *repositories.ChannelRepository) *ChannelService {
 	return &ChannelService{
+		Service: *core.NewService(),
 		log: log,
 		repo: repo,
 	}

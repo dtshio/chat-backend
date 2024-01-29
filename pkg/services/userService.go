@@ -61,12 +61,9 @@ func (us *UserService) CreateProfile(data interface{}) (interface{}, error) {
 		return nil, us.GenError(us.InvalidData, profile)
 	}
 
-	duplicate, err := us.repo.FindByUsername(profile.Username)
-	if err != nil {
+	if duplicate, err := us.repo.FindByUsername(profile.Username); err != nil {
 		us.log.Warn("Warn", zap.Any("Warn", err.Error()))
-	}
-
-	if duplicate != nil {
+	} else if duplicate.(models.Profile).Username == profile.Username {
 		return nil, us.GenError(us.DuplicateError, profile)
 	}
 
@@ -151,6 +148,7 @@ func (us *UserService) GetDefaultProfiles(data interface{}) (interface{}, error)
 
 func NewUserService(log *zap.Logger, repo *repositories.UserRepository) *UserService {
 	return &UserService{
+		Service: *core.NewService(),
 		log: log,
 		repo: repo,
 	}

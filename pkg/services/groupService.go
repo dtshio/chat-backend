@@ -160,6 +160,7 @@ func (gs *GroupService) GetGroupsByProfile(data interface{}) (interface{}, error
 
 func NewGroupService(log *zap.Logger, repo *repositories.GroupRepository, channelService *ChannelService) *GroupService {
 	return &GroupService{
+		Service: *core.NewService(),
 		log: log,
 		repo: repo,
 		service: channelService,

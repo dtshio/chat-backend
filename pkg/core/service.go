@@ -14,10 +14,8 @@ type Service struct {
 	DeleteError string
 }
 
-func NewService(methods []ServiceMethod) *Service {
+func NewService() *Service {
 	return &Service{
-        methods: methods,
-
         GenError:      GenError,
         InvalidData:   InvalidData,
         CreateError:   CreateError,

@@ -136,6 +136,7 @@ func (ms *MessageService) GetMessages(data interface{}) (interface{}, error) {
 
 func NewMessageService(log *zap.Logger, repo *repositories.MessageRepository, userService *UserService, redis *redis.Client) *MessageService {
 	return &MessageService{
+		Service: *core.NewService(),
 		log: log,
 		repo: repo,
 		service: userService,

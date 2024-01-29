@@ -196,16 +196,7 @@ func NewFriendshipService(
 	redis *redis.Client,
 ) *FriendshipService {
 	return &FriendshipService{
-		Service: *core.NewService(
-            []core.ServiceMethod{
-                (&FriendshipService{}).CreateFriendship,
-                (&FriendshipService{}).GetFriendships,
-                (&FriendshipService{}).DeleteFriendship,
-                (&FriendshipService{}).CreateFriendshipRequest,
-                (&FriendshipService{}).GetFriendshipRequests,
-                (&FriendshipService{}).DeleteFriendshipRequest,
-            },
-		),
+		Service: *core.NewService(),
 		log:            log,
 		repo:           repo,
 		channelService: channelService,
