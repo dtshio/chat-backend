@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -56,6 +57,11 @@ func (mc *GroupController) HandleNewGroup(w http.ResponseWriter, r *http.Request
 
 	memberRecord, err := mc.service.AddGroupMember(groupMember)
 	if err != nil {
+		if _, errDeletingGroup := mc.service.DeleteGroup(fmt.Sprintf("%d", groupRecord.(models.Group).ID)); errDeletingGroup != nil {
+			mc.Response(w, http.StatusInternalServerError, errDeletingGroup)
+			return
+		}
+
 		mc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -267,10 +273,15 @@ func (mc *GroupController) HandleGetGroupsByProfile(w http.ResponseWriter, r *ht
 		return
 	}
 
-	res, err := json.Marshal(dbRecords)
-	if err != nil {
-		mc.Response(w, http.StatusInternalServerError, nil)
-		return
+	var res []core.Map
+
+	for _, group := range dbRecords.([]models.Group) {
+		res = append(res, core.Map{
+			"id": group.ID,
+			"name": group.Name,
+			"owner_id": group.OwnerID,
+			"channel_id": group.ChannelID,
+		})
 	}
 
 	mc.Response(w, http.StatusOK, res)
