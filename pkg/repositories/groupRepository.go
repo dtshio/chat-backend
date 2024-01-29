@@ -147,9 +147,12 @@ func (gr *GroupRepository) GetGroupsByProfile(data interface {}) (interface {}, 
 
 	groups := &[]models.Group{}
 
-	gr.db = gr.db.Table("group_members").Joins("JOIN groups ON group_members.group_id = groups.id")
-	gr.db = gr.db.Where("group_members.profile_id = ?", profileID)
-	err := gr.db.Select("DISTINCT groups.*").Find(&groups).Error
+	err := gr.db.Table("groups").
+		Joins("JOIN group_members ON group_members.group_id = groups.id").
+		Where("group_members.profile_id = ?", profileID).
+		Select("DISTINCT groups.*").
+		Find(&groups).Error
+
 	if err != nil {
 		return nil, gr.GenError(gr.NotFoundError, groups)
 	}
