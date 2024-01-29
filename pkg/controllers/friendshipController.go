@@ -102,27 +102,47 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 		return
 	}
 
-	if dbRecords == nil {
+	if len(dbRecords.([]models.Friendship)) == 0 {
 		fc.Response(w, http.StatusOK, "[]")
 		return
 	}
 
-	var res string
+	var res []core.Map
+
 	for _, friendship := range dbRecords.([]models.Friendship) {
-		res += fmt.Sprint(
-			"{\"id\": \"",
-			friendship.ID,
-			"\", \"initiator_id\": \"",
-			friendship.InitiatorID,
-			"\", \"friend_id\": \"",
-			friendship.FriendID,
-			"\", \"channel_id\": \"",
-			friendship.DmChannelID,
-			"\"},",
-		)
+		var profile models.Profile
+		userIDInt, err := strconv.Atoi(userID)
+		if err != nil {
+			fc.Response(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		if friendship.InitiatorID == models.BigInt(userIDInt) {
+			profileRecords, err := fc.userService.GetDefaultProfiles([]string{fmt.Sprint(friendship.FriendID)})
+			if err != nil {
+				fc.Response(w, http.StatusInternalServerError, err)
+				return
+			}
+
+			profile = profileRecords.([]models.Profile)[0]
+		} else {
+			profileRecords, err := fc.userService.GetDefaultProfiles([]string{fmt.Sprint(friendship.InitiatorID)})
+			if err != nil {
+				fc.Response(w, http.StatusInternalServerError, err)
+				return
+			}
+			
+			profile = profileRecords.([]models.Profile)[0]
+		}
+
+		res = append(res, core.Map{
+			"id": friendship.ID,
+			"channel_id": friendship.DmChannelID,
+			"username": profile.Username,
+		})
 	}
 
-	fc.Response(w, http.StatusOK, fmt.Sprint("[", res[:len(res) - 1], "]"))
+	fc.Response(w, http.StatusOK, res)
 }
 
 func (fc *FriendshipController) HandleGetFriendshipRequests(w http.ResponseWriter, r *http.Request) {
