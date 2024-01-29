@@ -102,6 +102,11 @@ func (fc *FriendshipController) HandleGetFriendships(w http.ResponseWriter, r *h
 		return
 	}
 
+	if dbRecords == nil {
+		fc.Response(w, http.StatusOK, "[]")
+		return
+	}
+
 	if len(dbRecords.([]models.Friendship)) == 0 {
 		fc.Response(w, http.StatusOK, "[]")
 		return
