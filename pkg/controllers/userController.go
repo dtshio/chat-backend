@@ -54,6 +54,16 @@ func (uc *UserController) HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	profileRecord, err := uc.service.CreateProfile(profile)
 	if err != nil {
+		if _, errDeletingUser := uc.service.DeleteUser(fmt.Sprint(userRecord.(models.User).ID)); errDeletingUser != nil {
+			uc.Response(w, http.StatusInternalServerError, errDeletingUser)
+			return
+		}
+
+		if strings.Contains(err.Error(), "Entry already exists") {
+			uc.Response(w, http.StatusConflict, "Username already exists")
+			return
+		}
+
 		uc.Response(w, http.StatusInternalServerError, err)
 		return
 	}
