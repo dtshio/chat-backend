@@ -29,14 +29,15 @@ func (mc *MessageController) HandleNewMessage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	authorID, _ := strconv.ParseUint(payload["author_id"].(string), 10, 64)
-	channelID, _ := strconv.ParseUint(payload["channel_id"].(string), 10, 64)
+	authorID, _ := strconv.ParseInt(payload["author_id"].(string), 10, 64)
+	channelID, _ := strconv.ParseInt(payload["channel_id"].(string), 10, 64)
 
 	message.Content = payload["content"].(string)
-	message.AuthorID = models.BigInt(authorID)
+	authorIDAddr := models.BigInt(authorID)
+	message.AuthorID = &authorIDAddr
 	message.ChannelID = models.BigInt(channelID)
 
-	if message.Content == "" || message.AuthorID == 0 || message.ChannelID == 0 {
+	if message.Content == "" || authorIDAddr == 0 || message.ChannelID == 0 {
 		mc.Response(w, http.StatusBadRequest, nil)
 		return
 	}

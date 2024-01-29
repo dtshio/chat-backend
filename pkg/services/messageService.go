@@ -23,9 +23,6 @@ type MessageService struct {
 
 func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 	message := data.(*models.Message)
-	if message == nil {
-		return nil, ms.GenError(ms.InvalidData, message)
-	}
 
 	messageRecord, err := ms.repo.CreateMessage(message)
 	if err != nil {
@@ -33,7 +30,7 @@ func (ms *MessageService) CreateMessage(data interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	authorIDStr := fmt.Sprint(message.AuthorID)
+	authorIDStr := fmt.Sprint(*message.AuthorID)
 
 	authorRecords, err := ms.service.GetProfile(authorIDStr)
 	if err != nil {
@@ -93,22 +90,31 @@ func (ms *MessageService) GetMessages(data interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	authorRecords := make([]models.Profile, 0)
+	authors := make([]models.Profile, 0)
 
 	for _, message := range messageRecords.([]models.Message) {
-		authorIDStr := fmt.Sprint(message.AuthorID)
+		if *message.AuthorID == 0 {
+			authors = append(authors, models.Profile{
+				Username: "Deleted User",
+				ID: 0,
+			})
 
-		authorRecord, err := ms.service.GetProfile(authorIDStr)
+			continue
+		}
+
+		authorIDStr := fmt.Sprint(*message.AuthorID)
+
+		authorRecords, err := ms.service.GetProfile(authorIDStr)
 		if err != nil {
 			ms.log.Warn("Warn", zap.Any("Warn", err.Error()))
 			return nil, err
 		}
 
-		if len(authorRecord.([]models.Profile)) > 1 {
-			return nil, ms.GenError(ms.DuplicateError, authorRecord)
+		if len(authorRecords.([]models.Profile)) > 1 {
+			return nil, ms.GenError(ms.DuplicateError, authorRecords)
 		}
 
-		authorRecords = append(authorRecords, authorRecord.([]models.Profile)[0])
+		authors = append(authors, authorRecords.([]models.Profile)[0])
 	}
 
 	messages := make([]map[string]any, 0)
@@ -116,7 +122,7 @@ func (ms *MessageService) GetMessages(data interface{}) (interface{}, error) {
 	for i, message := range messageRecords.([]models.Message) {
 		messageObject := map[string]any{
 			"id": message.ID,
-			"username": authorRecords[i].Username,
+			"username": authors[i].Username,
 			"content": message.Content,
 			"author_id": message.AuthorID,
 			"channel_id": message.ChannelID,

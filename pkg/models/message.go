@@ -5,7 +5,7 @@ import "github.com/datsfilipe/pkg/core"
 type Message struct {
 	ID BigInt `json:"id" gorm:"primaryKey"`
 	ChannelID BigInt `json:"channel_id" gorm:"not null REFERENCES channels(id)"`
-	AuthorID any `json:"author_id" gorm:"REFERENCES profiles(id)"`
+	AuthorID *BigInt `json:"author_id" gorm:"REFERENCES profiles(id)"`
 	Content string `json:"content" gorm:"not null"`
 }
 
